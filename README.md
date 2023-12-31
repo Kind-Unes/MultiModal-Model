@@ -31,17 +31,27 @@ python model.py
 
 ## Credits
 
-### IMG2TXT Model
-
+### TXT2IMG Models
+s
 - [OpenDalleV1.1](https://huggingface.co/dataautogpt3/OpenDalleV1.1)
 - [SSD-1B](https://huggingface.co/segmind/SSD-1B).
 - [SSD-1B-Anime](https://huggingface.co/furusu/SSD-1B-anime)
-- [GOOGLE-GEMINI](https://deepmind.google/technologies/gemini/#introduction)
-- [BLIP_IMAGE_CAPTIONING_LARGE](https://huggingface.co/Salesforce/blip-image-captioning-large)
-- [GOOGLE-GEMINI](https://deepmind.google/technologies/gemini/#introduction)
-- [FACEBOOK_MMS_TTS_ENG](https://huggingface.co/models/facebook/mms-tts-eng)
-- [OPENAI_WHISPER_LARGE_V2](https://huggingface.co/openai/whisper-large-v2)
 
+### Text Generation Model
+
+- [GOOGLE-GEMINI](https://deepmind.google/technologies/gemini/#introduction)
+
+### IMG2TXT Model
+
+- [BLIP_IMAGE_CAPTIONING_LARGE](https://huggingface.co/Salesforce/blip-image-captioning-large)
+
+### TTS Model
+
+- [FACEBOOK_MMS_TTS_ENG](https://huggingface.co/models/facebook/mms-tts-eng)
+
+### STT Model
+
+- [OPENAI_WHISPER_LARGE_V2](https://huggingface.co/openai/whisper-large-v2)
 
 
 ### Websites
