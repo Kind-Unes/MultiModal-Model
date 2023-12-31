@@ -16,13 +16,21 @@ load_dotenv()
 
 # Access the API_TOKENS
 txt2img_api_token = os.getenv("API_TOKEN_SSD_1B_ANIME")
+img2txt_api_token = os.getenv("API_TOKEN_BLIP_IMAGE_CAPTIONING_LARGE")
+txt2audio_api_token = os.getenv("API_TOKEN_FACEBOOK_MMS_TTS_ENG")
+audio2txt_api_token = os.getenv("API_TOKEN_OPENAI_WHISPER_LARGE_V2")
+gemini_text_generation_api_token = os.getenv("API_TOKEN_GOOGLE_AI_STUDIO")
+
+# stuff
 authorization = os.getenv("HEADER_AUTH")
 headers = {"Authorization": authorization}
-GOOGLE_AI_STUDIO = os.getenv("API_TOKEN_GOOGLE_AI_STUDIO")
 
+#! ------------------------------------------------------------------------------------------------------
+#!                                  # Text GENERATION
+#! ------------------------------------------------------------------------------------------------------
 
-# Text Generation 
-genai.configure(api_key=GOOGLE_AI_STUDIO)
+ 
+genai.configure(api_key=gemini_text_generation_api_token)
 
 # Set up the model
 generation_config = {
@@ -74,9 +82,10 @@ def generate_text():
     except Exception as e:
         return jsonify({"status": "error", "message": f"Error generating text: {str(e)}"}),500
 
+#! ------------------------------------------------------------------------------------------------------
+#!                                  # TEXT TO IMAGE
+#! ------------------------------------------------------------------------------------------------------
 
-
-# TEXT TO IMAGE
 def query(payload):
     response = requests.post(txt2img_api_token, headers=headers, json=payload)
     return response.content
@@ -103,12 +112,109 @@ def generate_image():
         # Return an error response if an exception occurs
         return jsonify({"status": "error", "message": f"Error generating image: {str(e)}"}),500
 
-
-# IMAGE TO TEXT 
-
-
-
+#! ------------------------------------------------------------------------------------------------------
+#!                                    # IMAGE TO TEXT 
+#! ------------------------------------------------------------------------------------------------------
 
 
+
+
+from flask import Flask, request, jsonify
+import requests
+
+app = Flask(__name__)
+
+
+def query_huggingface_api(data):
+    response = requests.post(img2txt_api_token, headers=headers, data=data)
+    return response.json()
+
+@app.route('/process_image', methods=['POST'])
+def process_image():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'})
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'})
+
+    if file:
+        try:
+            data = file.read()
+            result = query_huggingface_api(data)
+            return jsonify({"status": "success", "text": result[0]["generated_text"]})
+        except Exception as e:
+            return jsonify({"status": "error", "message": f"Error generating image: {str(e)}"}),500
+
+
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    # AUDIO TO TEXT 
+#! ------------------------------------------------------------------------------------------------------
+
+
+def query_audio_model(audio_data):
+    response = requests.post(audio2txt_api_token, headers=headers, files={"file": audio_data})
+    return response.json()
+
+@app.route('/automatic_speech_recognation', methods=['GET', 'POST'])
+def audio2text():
+    if request.method == 'POST':
+        try:
+            if 'file' not in request.files:
+                return jsonify({'error': 'No file part'}), 400
+
+            file = request.files['file']
+            if file.filename == '':
+                return jsonify({'error': 'No selected file'}), 400
+
+            output = query_audio_model(file)
+
+            if 'error' in output:
+                return jsonify({'error': output['error']}), 400
+            else:
+                return jsonify({'result': output})
+
+        except Exception as e:
+            print(e)
+            return jsonify({'error': str(e)}), 500
+
+    
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    # Text to audio
+#! ------------------------------------------------------------------------------------------------------
+
+
+
+
+def query_tts_model(text):
+    payload = {"inputs": text}
+    response = requests.post(txt2audio_api_token, headers=headers, json=payload)
+    return response.content
+
+@app.route('/txt2audio', methods=['POST'])
+def text2audio():
+        try:
+            data = request.get_json()
+            text_input = data.get('text', 'Hello, World!')
+
+            audio_bytes = query_tts_model(text_input)
+
+            return jsonify({'audio': base64.b64encode(audio_bytes).decode('utf-8')})
+
+        except Exception as e:
+            print(e)
+            return jsonify({'error': str(e)}), 500
+
+
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                     # OTHERS
+#! ------------------------------------------------------------------------------------------------------
+
+
+# Launch your server
 if __name__ == '__main__':
     app.run(debug=True)
