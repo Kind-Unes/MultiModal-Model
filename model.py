@@ -1,6 +1,7 @@
 import requests
 import os
 from dotenv import load_dotenv
+import transformers
 
 # load the env variables from .env
 load_dotenv()
