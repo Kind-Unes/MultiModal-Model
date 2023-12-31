@@ -28,3 +28,18 @@ pip install -r requirements.txt
 # Usage
 
 python model.py
+
+
+## Credits
+
+### IMG2TXT Model
+
+- [OpenDalleV1.1](https://huggingface.co/dataautogpt3/OpenDalleV1.1)
+- [SSD-1B](https://huggingface.co/segmind/SSD-1B).
+- [SSD-1B-Anime](https://huggingface.co/furusu/SSD-1B-anime)
+
+
+### Websites
+- [Base64-Viewer](https://base64-viewer.onrender.com).
+
+
