@@ -117,14 +117,6 @@ def generate_image():
 #! ------------------------------------------------------------------------------------------------------
 
 
-
-
-from flask import Flask, request, jsonify
-import requests
-
-app = Flask(__name__)
-
-
 def query_huggingface_api(data):
     response = requests.post(img2txt_api_token, headers=headers, data=data)
     return response.json()

@@ -1,4 +1,4 @@
 .env
-.gitignore
-younes
+/.gitignore
+./env
 todo.txt
