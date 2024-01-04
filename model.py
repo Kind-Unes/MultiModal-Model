@@ -99,8 +99,6 @@ def generate_image():
         image_bytes = query({
             "inputs": user_input,
         })
-        # server api testing
-        print("Debugging : ---------------------------------------------- ",image_bytes)
 
         # Convert binary data to Base64-encoded string
         base64_encoded_image = base64.b64encode(image_bytes).decode('utf-8')
@@ -203,7 +201,7 @@ def text2audio():
 
 
 #! ------------------------------------------------------------------------------------------------------
-#!                                     # Audio to image
+#!                                     # Image to Audio
 #! ------------------------------------------------------------------------------------------------------
         
 def query_huggingface_api(data):
@@ -237,8 +235,40 @@ def img2audio():
 
 
 #! ------------------------------------------------------------------------------------------------------
-#!                                     # Image to Audio
+#!                                     # Audio to Image
 #! ------------------------------------------------------------------------------------------------------
+        
+
+@app.route('/audio2img', methods=['GET', 'POST'])
+def audio2img():
+    if request.method == 'POST':
+        try:
+            if 'file' not in request.files:
+                return jsonify({'error': 'No file part'}), 400
+
+            file = request.files['file']
+            if file.filename == '':
+                return jsonify({'error': 'No selected file'}), 400
+
+            text = query_audio_model(file)
+
+
+            
+            image_bytes = query({
+               "inputs": text,
+             })
+            
+            base64_encoded_image = base64.b64encode(image_bytes).decode('utf-8')
+
+            return jsonify({"status": "success", "Image": base64_encoded_image})
+
+           
+        except Exception as e:
+            print(e)
+            return jsonify({'error': str(e)}), 500
+
+    
+
 
 
 
