@@ -1,12 +1,11 @@
 import requests
-import google.generativeai as genai
+import google.generativeai as genai 
 import os
 from dotenv import load_dotenv
 from PIL import Image
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import base64
-
 
 app = Flask(__name__)
 CORS(app)
@@ -81,6 +80,62 @@ def generate_text():
 
     except Exception as e:
         return jsonify({"status": "error", "message": f"Error generating text: {str(e)}"}),500
+    
+
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                  # Gemini Vision
+#! ------------------------------------------------------------------------------------------------------
+
+""""
+{
+"prompt": "do this ...",
+"role": "you are . . .",
+"prompt": "[img1,img2,img3]",
+}
+"""
+
+import io
+
+def generate_vision_image(data, image_file):
+    try:
+        model = genai.GenerativeModel('gemini-pro-vision')
+
+        role = data["role"]
+        prompt = data["prompt"]
+
+        # Process the file as needed (e.g., convert to PIL.Image)
+        image = Image.open(io.BytesIO(image_file.read()))
+
+        response = model.generate_content([role + prompt, image], stream=False)
+
+        return response.text
+
+    except Exception as e:
+        raise RuntimeError(f"Error generating vision image: {str(e)}")
+
+@app.route('/gemini_vision', methods=['POST'])
+def gemini_vision():
+    try:
+        if 'images' in request.files and 'prompt' in request.form and 'role' in request.form:
+            image_file = request.files['images']
+            prompt = request.form['prompt']
+            role = request.form['role']
+
+            data = {"prompt": prompt, "role": role}
+
+            app.logger.info(f"Received data: {data}")
+
+            result = generate_vision_image(data, image_file)
+
+            return jsonify({"status": "success", "result": result})
+        else:
+            return jsonify({"status": "error", "message": "Invalid request format"}), 400
+
+    except Exception as e:
+        app.logger.error(f"Error processing request: {str(e)}")
+        return jsonify({"status": "error", "message": f"Error generating vision image: {str(e)}"}), 500
+
 
 #! ------------------------------------------------------------------------------------------------------
 #!                                  # TEXT TO IMAGE
