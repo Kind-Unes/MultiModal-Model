@@ -203,8 +203,44 @@ def text2audio():
 
 
 #! ------------------------------------------------------------------------------------------------------
-#!                                     # OTHERS
+#!                                     # Audio to image
 #! ------------------------------------------------------------------------------------------------------
+        
+def query_huggingface_api(data):
+    response = requests.post(img2txt_api_token, headers=headers, data=data)
+    return response.json()
+
+@app.route('/img2audio', methods=['POST'])
+def img2audio():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'})
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'})
+
+    if file:
+        try:
+            data = file.read()
+            result = query_huggingface_api(data)
+
+            audio_bytes = query_tts_model(result[0]["generated_text"])
+            audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+
+
+            return jsonify({"status": "success", "audio": audio_base64})
+        except Exception as e:
+            print(e)
+            return jsonify({"status": "error", "message": f"Error generating audio: {str(e)}"}),500
+
+
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                     # Image to Audio
+#! ------------------------------------------------------------------------------------------------------
+
+
 
 
 # Launch your server
