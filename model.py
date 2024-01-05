@@ -9,13 +9,6 @@ import base64
 from diffusers import DiffusionPipeline
 import io
 
-# img2vid Diffuser Stability AI
-pipeline = DiffusionPipeline.from_pretrained("stabilityai/stable-video-diffusion-img2vid-xt")
-
-
-
-
-
 app = Flask(__name__)
 CORS(app)
 
@@ -97,6 +90,8 @@ def generate_text():
 #! ------------------------------------------------------------------------------------------------------
 #!                                  # Gemini Vision
 #! ------------------------------------------------------------------------------------------------------
+
+ # Prompt Example :
 
 """"
 {
@@ -329,6 +324,7 @@ def audio2img():
             print(e)
             return jsonify({'error': str(e)}), 500
 
+
 #! ------------------------------------------------------------------------------------------------------
 #!                                    # Image ID Diffuser
 #!                                  API NOT WORKING CURRENTLY
@@ -368,6 +364,17 @@ def identify_face():
 
     except Exception as e:
         return jsonify({"status": "error", "message": f"Error processing request: {str(e)}"}), 500
+
+
+
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    # COMING SOON . . . 
+#! ------------------------------------------------------------------------------------------------------
+     
+
+
+
 
 # Launch your server
 if __name__ == '__main__':
