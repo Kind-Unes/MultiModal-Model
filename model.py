@@ -6,6 +6,12 @@ from PIL import Image
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import base64
+from diffusers import DiffusionPipeline
+
+# img2vid Diffuser Stability AI
+pipeline = DiffusionPipeline.from_pretrained("stabilityai/stable-video-diffusion-img2vid-xt")
+
+
 
 app = Flask(__name__)
 CORS(app)
