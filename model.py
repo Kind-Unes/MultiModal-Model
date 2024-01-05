@@ -7,9 +7,12 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import base64
 from diffusers import DiffusionPipeline
+import io
 
 # img2vid Diffuser Stability AI
 pipeline = DiffusionPipeline.from_pretrained("stabilityai/stable-video-diffusion-img2vid-xt")
+
+
 
 
 
@@ -24,7 +27,9 @@ txt2img_api_token = os.getenv("API_TOKEN_SSD_1B_ANIME")
 img2txt_api_token = os.getenv("API_TOKEN_BLIP_IMAGE_CAPTIONING_LARGE")
 txt2audio_api_token = os.getenv("API_TOKEN_FACEBOOK_MMS_TTS_ENG")
 audio2txt_api_token = os.getenv("API_TOKEN_OPENAI_WHISPER_LARGE_V2")
+img_id_api_token = os.getenv("API_TOKEN_IMG_ID")
 gemini_text_generation_api_token = os.getenv("API_TOKEN_GOOGLE_AI_STUDIO")
+
 
 # stuff
 authorization = os.getenv("HEADER_AUTH")
@@ -70,7 +75,7 @@ def generate_content(role, prompt):
     return response.text
 
 
-@app.route('/generate', methods=['POST'])
+@app.route('/text_generation/gemini', methods=['POST'])
 def generate_text():
         
     try:
@@ -101,8 +106,6 @@ def generate_text():
 }
 """
 
-import io
-
 def generate_vision_image(data, image_file):
     try:
         model = genai.GenerativeModel('gemini-pro-vision')
@@ -120,7 +123,7 @@ def generate_vision_image(data, image_file):
     except Exception as e:
         raise RuntimeError(f"Error generating vision image: {str(e)}")
 
-@app.route('/gemini_vision', methods=['POST'])
+@app.route('/image2txt/gemini_vision', methods=['POST'])
 def gemini_vision():
     try:
         if 'images' in request.files and 'prompt' in request.form and 'role' in request.form:
@@ -151,7 +154,7 @@ def query(payload):
     response = requests.post(txt2img_api_token, headers=headers, json=payload)
     return response.content
 
-@app.route("/txt2img", methods=["POST"]) 
+@app.route("/txt2img/SSD_1B_ANIME", methods=["POST"]) 
 def generate_image():
     try:
         data = request.get_json()
@@ -180,7 +183,7 @@ def query_huggingface_api(data):
     response = requests.post(img2txt_api_token, headers=headers, data=data)
     return response.json()
 
-@app.route('/process_image', methods=['POST'])
+@app.route('/img2txt/BLIP_IMAGE_CAPTIONING_LARGE', methods=['POST'])
 def process_image():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'})
@@ -209,7 +212,7 @@ def query_audio_model(audio_data):
     response = requests.post(audio2txt_api_token, headers=headers, files={"file": audio_data})
     return response.json()
 
-@app.route('/automatic_speech_recognation', methods=['GET', 'POST'])
+@app.route('/audio2txt/WHISPER_LARGE_V2', methods=['GET', 'POST'])
 def audio2text():
     if request.method == 'POST':
         try:
@@ -238,14 +241,12 @@ def audio2text():
 #! ------------------------------------------------------------------------------------------------------
 
 
-
-
 def query_tts_model(text):
     payload = {"inputs": text}
     response = requests.post(txt2audio_api_token, headers=headers, json=payload)
     return response.content
 
-@app.route('/txt2audio', methods=['POST'])
+@app.route('/txt2audio/MMS_TTS_ENG', methods=['POST'])
 def text2audio():
         try:
             data = request.get_json()
@@ -269,7 +270,7 @@ def query_huggingface_api(data):
     response = requests.post(img2txt_api_token, headers=headers, data=data)
     return response.json()
 
-@app.route('/img2audio', methods=['POST'])
+@app.route('/img2audio/MMS__BLIP', methods=['POST'])
 def img2audio():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'})
@@ -300,7 +301,7 @@ def img2audio():
 #! ------------------------------------------------------------------------------------------------------
         
 
-@app.route('/audio2img', methods=['GET', 'POST'])
+@app.route('/audio2img/WHISPER__BLIP', methods=['GET', 'POST'])
 def audio2img():
     if request.method == 'POST':
         try:
@@ -334,17 +335,15 @@ def audio2img():
 #! ------------------------------------------------------------------------------------------------------
      
 
-API_URL = "https://api-inference.huggingface.co/models/h94/IP-Adapter-FaceID"
-HEADERS = {"Authorization": "Bearer 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"}
 
 def query(payload):
-    response = requests.post(API_URL, headers=HEADERS, json=payload)
+    response = requests.post(img_id_api_token, headers=headers, json=payload)
     return response.content
 
 def image_to_base64(image_bytes):
     return base64.b64encode(image_bytes).decode('utf-8')
 
-@app.route("/identify_face", methods=["POST"])
+@app.route("/img2img/face_id", methods=["POST"])
 def identify_face():
     try:
         # Get image file from the request
