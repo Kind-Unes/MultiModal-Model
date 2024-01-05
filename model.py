@@ -322,11 +322,46 @@ def audio2img():
             print(e)
             return jsonify({'error': str(e)}), 500
 
-    
+#! ------------------------------------------------------------------------------------------------------
+#!                                     # Image ID Diffuser
+#! ------------------------------------------------------------------------------------------------------
+     
 
+API_URL = "https://api-inference.huggingface.co/models/h94/IP-Adapter-FaceID"
+HEADERS = {"Authorization": "Bearer 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"}
 
+def query(payload):
+    response = requests.post(API_URL, headers=HEADERS, json=payload)
+    return response.content
 
+def image_to_base64(image_bytes):
+    return base64.b64encode(image_bytes).decode('utf-8')
 
+@app.route("/identify_face", methods=["POST"])
+def identify_face():
+    try:
+        # Get image file from the request
+        image_file = request.files.get("image")
+        
+        if image_file is None:
+            return jsonify({"status": "error", "message": "No image file provided"}), 400
+
+        # Convert image file to bytes
+        image_bytes = image_file.read()
+
+        # Convert image bytes to Base64
+        base64_encoded_image = image_to_base64(image_bytes)
+
+        # Make the API request
+        response_content = query({"inputs": base64_encoded_image})
+
+        # Process the API response (you may need to adapt this based on the actual response format)
+        result = {"status": "success", "response_content": response_content.decode("utf-8")}
+
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Error processing request: {str(e)}"}), 500
 
 # Launch your server
 if __name__ == '__main__':
