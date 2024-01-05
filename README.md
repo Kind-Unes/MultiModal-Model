@@ -9,7 +9,7 @@ This project is a multi-modal model that accepts audio, images, and text as inpu
 ## Features
 
 - **Input Modalities:** Audio, Images, Text
-- **Output Modalities:** Audio, Images, Text
+- **Output Modalities:** Audio, Images, Text, Videos
 
 ## Getting Started
 
