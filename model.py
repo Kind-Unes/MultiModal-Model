@@ -6,7 +6,7 @@ from PIL import Image
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import base64
-from diffusers import DiffusionPipeline
+import io
 from io import BytesIO
 import json # for image classification output
 # TODO: API TOKEN SPECIALIZE THEM
@@ -50,8 +50,10 @@ audio_classification_distil_ast_audioset_api_token = "https://api-inference.hugg
 audio_classification_wav2vec2_large_xlsr_53_gender_api_token = "https://api-inference.huggingface.co/models/alefiury/wav2vec2-large-xlsr-53-gender-recognition-librispeech"
 audio_classification_mms_lid_126_api_token = "https://api-inference.huggingface.co/models/facebook/mms-lid-126"
 
-
-
+# Object Detecton :
+object_detection_detr_resnet_50_api_token = "https://api-inference.huggingface.co/models/facebook/detr-resnet-50"
+object_detection_yolos_fashionpedia_api_token = "https://api-inference.huggingface.co/models/valentinafeve/yolos-fashionpedia"
+object_detection_table_transformer_detection_api_token = "https://api-inference.huggingface.co/models/microsoft/table-transformer-detection"
 
 
 # stuff
@@ -179,6 +181,14 @@ def image_segmentation(data,api):
 #? ------------------------------------------------------------------------------------------------------
 
 def audio_classification(data,api):
+    response = requests.post(api,headers=headers,data=data)
+    return response.content
+
+#? ------------------------------------------------------------------------------------------------------
+#?                                  # OBJECT DETECTION
+#? ------------------------------------------------------------------------------------------------------
+
+def object_detection(data,api):
     response = requests.post(api,headers=headers,data=data)
     return response.content
 #! ------------------------------------------------------------------------------------------------------
@@ -878,9 +888,140 @@ def audio_classification_mms_lid_126():
             except Exception as e:
                 return jsonify({"status":"error","message":str(e)}),500
 
+#! ------------------------------------------------------------------------------------------------------
+#!                                    # OBJECT DETECTION
+#! ------------------------------------------------------------------------------------------------------
+
+# =================================================================================================
+# Models : detr_resnet (base Model) 
+# Speciality: Base Model
+# prompt : {"file":file}
+# =================================================================================================
+@app.route("/object_detection/detr_resnet_50",methods=["POST"])
+def object_detection_detr_resnet():
+    if "file" not in request.files:
+        return jsonify({"status":"error","message":"No File Part"}),400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"status":"error","message":"No Selected Files"}),400
+    if file:
+        try:
+            data = file.read()
+            image_bytes = object_detection(data,object_detection_detr_resnet_50_api_token)
+
+            
+            # Parse the JSON string into a Python list of dictionaries
+            data_list = json.loads(image_bytes)
+            print(data_list)
+
+            scores =[]
+            labels = []
+            segmented_pictures=[]
+
+            for obj in data_list:
+                score = obj['score']
+                label = obj['label']
+                mask_base64 = obj['box']
+
+                
+                # DO APPEND STUFF :D
+                scores.append(score)
+                labels.append(label)
+                segmented_pictures.append(mask_base64)
+
+            return jsonify({"status":"sucess","Segmented Image":{"labels":labels,"scores":scores,"segemented_pictures":segmented_pictures}})
+        except Exception as e:
+            return jsonify({"status":"error","message":str(e)})
 
 
-# Launch your server
+
+# =================================================================================================
+# Models : yolos_fashionpedia (base Model) 
+# Speciality: Base Model
+# prompt : {"file":file}
+# =================================================================================================
+@app.route("/object_detection/yolos_fashionpedia",methods=["POST"])
+def object_detection_yolos_fashionpedia():
+    if "file" not in request.files:
+        return jsonify({"status":"error","message":"No File Part"}),400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"status":"error","message":"No Selected Files"}),400
+    if file:
+        try:
+            data = file.read()
+            image_bytes = object_detection(data,object_detection_yolos_fashionpedia_api_token)
+
+            
+            # Parse the JSON string into a Python list of dictionaries
+            data_list = json.loads(image_bytes)
+            print(data_list)
+
+            scores =[]
+            labels = []
+            segmented_pictures=[]
+
+            for obj in data_list:
+                score = obj['score']
+                label = obj['label']
+                mask_base64 = obj['box']
+
+                
+                # DO APPEND STUFF :D
+                scores.append(score)
+                labels.append(label)
+                segmented_pictures.append(mask_base64)
+
+            return jsonify({"status":"sucess","Segmented Image":{"labels":labels,"scores":scores,"segemented_pictures":segmented_pictures}})
+        except Exception as e:
+            return jsonify({"status":"error","message":str(e)})
+
+
+
+
+# =================================================================================================
+# Models : table_transformer_detection (base Model) 
+# Speciality: Base Model
+# prompt : {"file":file}
+# =================================================================================================
+@app.route("/object_detection/table_transformer_detection",methods=["POST"])
+def object_detection_table_transformer_detection():
+    if "file" not in request.files:
+        return jsonify({"status":"error","message":"No File Part"}),400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"status":"error","message":"No Selected Files"}),400
+    if file:
+        try:
+            data = file.read()
+            image_bytes = object_detection(data,object_detection_table_transformer_detection_api_token)
+
+            
+            # Parse the JSON string into a Python list of dictionaries
+            data_list = json.loads(image_bytes)
+            print(data_list)
+
+            scores =[]
+            labels = []
+            segmented_pictures=[]
+
+            for obj in data_list:
+                score = obj['score']
+                label = obj['label']
+                mask_base64 = obj['box']
+
+                
+                # DO APPEND STUFF :D
+                scores.append(score)
+                labels.append(label)
+                segmented_pictures.append(mask_base64)
+
+            return jsonify({"status":"sucess","Segmented Image":{"labels":labels,"scores":scores,"segemented_pictures":segmented_pictures}})
+        except Exception as e:
+            return jsonify({"status":"error","message":str(e)})
+
+
+# Launch your server 
 app.run(debug=True)
 
 #?                                     COMING SOON . . .        
