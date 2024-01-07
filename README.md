@@ -8,8 +8,8 @@ This project is a multi-modal model that accepts audio, images, and text as inpu
 
 ## Features
 
-- **Input Modalities:** Audio, Images, Text
-- **Output Modalities:** Audio, Images, Text, Videos
+- **Input Modalities:** Audio, Images, Text, videos , emojis, multi inputs
+- **Output Modalities:** Audio, Images, Text, Videos , emojis , segmented images, images objects detection coordinates, multi outputs
 
 ## Getting Started
 
