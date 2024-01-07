@@ -28,6 +28,83 @@ gemini_text_generation_api_token = os.getenv("API_TOKEN_GOOGLE_AI_STUDIO")
 authorization = os.getenv("HEADER_AUTH")
 headers = {"Authorization": authorization}
 
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                  # CORE FUNCTIONS 
+#! ------------------------------------------------------------------------------------------------------
+
+
+#? ------------------------------------------------------------------------------------------------------
+#?                                  # Text Generation
+#? ------------------------------------------------------------------------------------------------------
+
+def txt_generation(role, prompt):
+    prompt_parts = [
+        role, prompt
+    ]
+
+    response = model.generate_content(prompt_parts)
+
+    return response.text
+
+#? ------------------------------------------------------------------------------------------------------
+#?                                  # IMAGE TO TEXT
+#? ------------------------------------------------------------------------------------------------------
+
+def gemini_img2txt(data, image_file):
+    try:
+        model = genai.GenerativeModel('gemini-pro-vision')
+
+        role = data["role"]
+        prompt = data["prompt"]
+
+        # Process the file as needed (e.g., convert to PIL.Image)
+        image = Image.open(io.BytesIO(image_file.read()))
+
+        response = model.generate_content([role + prompt, image], stream=False)
+
+        return response.text
+
+    except Exception as e:
+        raise RuntimeError(f"Error generating vision image: {str(e)}")
+    
+
+
+def img2txt(data):
+    response = requests.post(img2txt_api_token, headers=headers, data=data)
+    return response.json()
+
+
+
+#? ------------------------------------------------------------------------------------------------------
+#?                                  # TEXT TO IMAGE
+#? ------------------------------------------------------------------------------------------------------
+
+
+def text2image(payload):
+    response = requests.post(txt2img_api_token, headers=headers, json=payload)
+    return response.content
+
+#? ------------------------------------------------------------------------------------------------------
+#?                                  # AUDIO TO TEXT
+#? ------------------------------------------------------------------------------------------------------
+
+
+def audio2text(audio_data):
+    response = requests.post(audio2txt_api_token, headers=headers, files={"file": audio_data})
+    return response.json()
+
+
+#? ------------------------------------------------------------------------------------------------------
+#?                                  # TEXT TO AUDIO
+#? ------------------------------------------------------------------------------------------------------
+
+def text2audio(text):
+    payload = {"inputs": text}
+    response = requests.post(txt2audio_api_token, headers=headers, json=payload)
+    return response.content
+
+
 #! ------------------------------------------------------------------------------------------------------
 #!                                  # Text GENERATION
 #! ------------------------------------------------------------------------------------------------------
@@ -58,15 +135,6 @@ model = genai.GenerativeModel(
 
 
 
-def generate_content(role, prompt):
-    prompt_parts = [
-        role, prompt
-    ]
-
-    response = model.generate_content(prompt_parts)
-
-    return response.text
-
 
 @app.route('/text_generation/gemini', methods=['POST'])
 def generate_text():
@@ -78,7 +146,7 @@ def generate_text():
 
 
 
-        result = generate_content(role,prompt)
+        result = txt_generation(role,prompt)
    
         return jsonify({"status": "success", "result": result})
 
@@ -91,35 +159,8 @@ def generate_text():
 #!                                  # Gemini Vision
 #! ------------------------------------------------------------------------------------------------------
 
- # Prompt Example :
-
-""""
-{
-"prompt": "do this ...",
-"role": "you are . . .",
-"prompt": "[img1,img2,img3]",
-}
-"""
-
-def generate_vision_image(data, image_file):
-    try:
-        model = genai.GenerativeModel('gemini-pro-vision')
-
-        role = data["role"]
-        prompt = data["prompt"]
-
-        # Process the file as needed (e.g., convert to PIL.Image)
-        image = Image.open(io.BytesIO(image_file.read()))
-
-        response = model.generate_content([role + prompt, image], stream=False)
-
-        return response.text
-
-    except Exception as e:
-        raise RuntimeError(f"Error generating vision image: {str(e)}")
-
 @app.route('/image2txt/gemini_vision', methods=['POST'])
-def gemini_vision():
+def gemini_img2txt():
     try:
         if 'images' in request.files and 'prompt' in request.form and 'role' in request.form:
             image_file = request.files['images']
@@ -130,7 +171,7 @@ def gemini_vision():
 
             app.logger.info(f"Received data: {data}")
 
-            result = generate_vision_image(data, image_file)
+            result = gemini_img2txt(data, image_file)
 
             return jsonify({"status": "success", "result": result})
         else:
@@ -145,9 +186,6 @@ def gemini_vision():
 #!                                  # TEXT TO IMAGE
 #! ------------------------------------------------------------------------------------------------------
 
-def query(payload):
-    response = requests.post(txt2img_api_token, headers=headers, json=payload)
-    return response.content
 
 @app.route("/txt2img/SSD_1B_ANIME", methods=["POST"]) 
 def generate_image():
@@ -155,7 +193,7 @@ def generate_image():
         data = request.get_json()
         user_input = data.get("prompt")  # you can include a default prompt
 
-        image_bytes = query({
+        image_bytes = text2image({
             "inputs": user_input,
         })
 
@@ -174,9 +212,6 @@ def generate_image():
 #! ------------------------------------------------------------------------------------------------------
 
 
-def query_huggingface_api(data):
-    response = requests.post(img2txt_api_token, headers=headers, data=data)
-    return response.json()
 
 @app.route('/img2txt/BLIP_IMAGE_CAPTIONING_LARGE', methods=['POST'])
 def process_image():
@@ -191,7 +226,7 @@ def process_image():
     if file:
         try:
             data = file.read()
-            result = query_huggingface_api(data)
+            result = img2txt(data)
             return jsonify({"status": "success", "text": result[0]["generated_text"]})
         except Exception as e:
             return jsonify({"status": "error", "message": f"Error generating image: {str(e)}"}),500
@@ -201,11 +236,6 @@ def process_image():
 #! ------------------------------------------------------------------------------------------------------
 #!                                    # AUDIO TO TEXT 
 #! ------------------------------------------------------------------------------------------------------
-
-
-def query_audio_model(audio_data):
-    response = requests.post(audio2txt_api_token, headers=headers, files={"file": audio_data})
-    return response.json()
 
 @app.route('/audio2txt/WHISPER_LARGE_V2', methods=['GET', 'POST'])
 def audio2text():
@@ -218,7 +248,7 @@ def audio2text():
             if file.filename == '':
                 return jsonify({'error': 'No selected file'}), 400
 
-            output = query_audio_model(file)
+            output = audio2text(file)
 
             if 'error' in output:
                 return jsonify({'error': output['error']}), 400
@@ -235,19 +265,13 @@ def audio2text():
 #!                                    # Text to audio
 #! ------------------------------------------------------------------------------------------------------
 
-
-def query_tts_model(text):
-    payload = {"inputs": text}
-    response = requests.post(txt2audio_api_token, headers=headers, json=payload)
-    return response.content
-
 @app.route('/txt2audio/MMS_TTS_ENG', methods=['POST'])
 def text2audio():
         try:
             data = request.get_json()
             text_input = data.get('text', 'Hello, World!')
 
-            audio_bytes = query_tts_model(text_input)
+            audio_bytes = text2audio(text_input)
 
             return jsonify({'audio': base64.b64encode(audio_bytes).decode('utf-8')})
 
@@ -280,7 +304,7 @@ def img2audio():
             data = file.read()
             result = query_huggingface_api(data)
 
-            audio_bytes = query_tts_model(result[0]["generated_text"])
+            audio_bytes = text2audio(result[0]["generated_text"])
             audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
 
 
@@ -307,11 +331,11 @@ def audio2img():
             if file.filename == '':
                 return jsonify({'error': 'No selected file'}), 400
 
-            text = query_audio_model(file)
+            text = audio2text(file)
 
 
             
-            image_bytes = query({
+            image_bytes = text2image({
                "inputs": text,
              })
             
@@ -326,12 +350,68 @@ def audio2img():
 
 
 #! ------------------------------------------------------------------------------------------------------
-#!                                    # Image ID Diffuser
-#!                                  API NOT WORKING CURRENTLY
+#!                                    # IMAGE CLASSIFICATION
+#! ------------------------------------------------------------------------------------------------------
+    
+#! ------------------------------------------------------------------------------------------------------
+#!           # IMAGE TO IMAGE (USING DIFFUSERS + USING IMG =) TEXT(PROMPT ENGINEERING) =) IMAGE)
 #! ------------------------------------------------------------------------------------------------------
      
+#! ------------------------------------------------------------------------------------------------------
+#!                                    # IMAGE SEGMENTATION
+#! ------------------------------------------------------------------------------------------------------
+    
+#! ------------------------------------------------------------------------------------------------------
+#!                                    # VIDEO CLASSIFICATION    
+#! ------------------------------------------------------------------------------------------------------
+    
+#! ------------------------------------------------------------------------------------------------------
+#!                                    # AUDIO TASKS
+#! ------------------------------------------------------------------------------------------------------
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    # DEPTH ESTIMATION
+#! ------------------------------------------------------------------------------------------------------
+    
+#! ------------------------------------------------------------------------------------------------------
+#!                              # VISUAL Q&A (GOOGLE GEMINI)(PROMPT ENGINEERED) + HF.CO 
+#! ------------------------------------------------------------------------------------------------------
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    #TEXT TO 3D (GIF)
+#! ------------------------------------------------------------------------------------------------------
+    
+    
+    
+    
 
 
+
+# Launch your server
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#!                                     OUT OF THE SERVICE        
+""""
+# ------------------------------------------------------------------------------------------------------
+#                                    # Image ID Diffuser
+#                                  API NOT WORKING CURRENTLY
+# ------------------------------------------------------------------------------------------------------
+     
 def query(payload):
     response = requests.post(img_id_api_token, headers=headers, json=payload)
     return response.content
@@ -365,17 +445,4 @@ def identify_face():
     except Exception as e:
         return jsonify({"status": "error", "message": f"Error processing request: {str(e)}"}), 500
 
-
-
-
-#! ------------------------------------------------------------------------------------------------------
-#!                                    # COMING SOON . . . 
-#! ------------------------------------------------------------------------------------------------------
-     
-
-
-
-
-# Launch your server
-if __name__ == '__main__':
-    app.run(debug=True)
+"""
