@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import base64
 from diffusers import DiffusionPipeline
-import io
+from io import BytesIO
 import json # for image classification output
 # TODO: API TOKEN SPECIALIZE THEM
 # TODO: ADD MORE MODELS FOR EACH TASKS
@@ -38,7 +38,11 @@ GEMINI_api_token = os.getenv("GOOGLE_AI_STUDIO")
 img_classification_RESNET_api_token = "https://api-inference.huggingface.co/models/microsoft/resnet-50"
 img_classification_VIT_AGE_api_token = "https://api-inference.huggingface.co/models/nateraw/vit-age-classifier"
 img_classification_NFWS_api_token= "https://api-inference.huggingface.co/models/Falconsai/nsfw_image_detection" # NOT SAFE TO WORK
-# GEMINI (ultimate one)
+#! GEMINI (ultimate one)
+
+# Image Segmentation 
+img_segmentation_b2_clothes_api_token = "https://api-inference.huggingface.co/models/mattmdjaga/segformer_b2_clothes"
+
 
 
 
@@ -158,7 +162,13 @@ def image_classification(data,api):
     response = requests.post(api, headers=headers, data=data)
     return response.content
 
+#? ------------------------------------------------------------------------------------------------------
+#?                                  # IMAGE SEGEMENTATION
+#? ------------------------------------------------------------------------------------------------------
 
+def image_segmentation(data,api):
+    response = requests.post(api,headers=headers,data=data)
+    return response.content
 
 #! ------------------------------------------------------------------------------------------------------
 #!                                  # Text GENERATION
@@ -583,33 +593,6 @@ def image_classification_RESNET():
             except Exception as e:
                 return jsonify({"status":"error","message":str(e)}),500
             
-# =================================================================================================
-# Models : RESNET (base Model)
-# Speciality: Base Model
-# prompt : {"file":file}
-# =================================================================================================
-@app.route('/image_classification/RESNET',methods=["POST"])
-def image_classification_RESNET():
-        # Input Verification
-        if 'file' not in request.files:
-            return jsonify({"error":"No file part"}),400
-        file = request.files["file"]
-
-        if file.filename == "":
-            return jsonify({"error":"No Selected File"}),400
-        
-        if file:
-            try:
-                image = file.read() 
-                result = image_classification(image,img_classification_RESNET_api_token)
-                parsed_result = json.loads(result)
-                print(parsed_result)
-
-                return jsonify({"status":"success","classes":parsed_result}),200
-            
-            except Exception as e:
-                return jsonify({"status":"error","message":str(e)}),500
-
 
 # =================================================================================================
 # Models : VIT_AGE (base Model)
@@ -669,7 +652,44 @@ def image_classification_NFWS():
 #! ------------------------------------------------------------------------------------------------------
 #!                                    # IMAGE SEGMENTATION
 #! ------------------------------------------------------------------------------------------------------
-    
+#? THERE IS AN ERROR IN THE SCORES (always set to one D:)
+@app.route("/image_segmentation/B2_CLOTHES",methods=["POST"])
+def image_segmentation_B2_CLOTHES():
+    if "file" not in request.files:
+        return jsonify({"status":"error","message":"No File Part"}),400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"status":"error","message":"No Selected Files"}),400
+    if file:
+        try:
+            data = file.read()
+            image_bytes = image_segmentation(data,img_segmentation_b2_clothes_api_token)
+
+            # Parse the JSON string into a Python list of dictionaries
+            data_list = json.loads(image_bytes)
+            # Access properties of each object in the list
+            scores =[]
+            labels = []
+            segmented_pictures=[]
+
+            for obj in data_list:
+                score = obj['score']
+                label = obj['label']
+                mask_base64 = obj['mask']
+
+                # Decode the Base64-encoded mask data
+                mask_bytes = base64.b64decode(mask_base64)
+                
+                # DO APPEND STUFF :D
+                scores.append(score)
+                labels.append(label)
+                segmented_pictures.append(mask_base64)
+
+            return jsonify({"status":"sucess","Segmented Image":{"labels":labels,"scores":scores,"segemented_pictures":segmented_pictures}})
+        except Exception as e:
+            return jsonify({"status":"error","message":str(e)})
+
+
 #! ------------------------------------------------------------------------------------------------------
 #!           # IMAGE TO IMAGE (USING DIFFUSERS + USING IMG =) TEXT(PROMPT ENGINEERING) =) IMAGE)
 #! ------------------------------------------------------------------------------------------------------
