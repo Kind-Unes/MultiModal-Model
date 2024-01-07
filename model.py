@@ -45,8 +45,10 @@ img_segmentation_b2_clothes_api_token = "https://api-inference.huggingface.co/mo
 
 # Audio Classification 
 audio_classification_Hubert_emotion_api_token= "https://api-inference.huggingface.co/models/Rajaram1996/Hubert_emotion"
-
-
+audio_classification_wav2vec2_lg_xlsr_en_api_token = "https://api-inference.huggingface.co/models/ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
+audio_classification_distil_ast_audioset_api_token = "https://api-inference.huggingface.co/models/bookbot/distil-ast-audioset"
+audio_classification_wav2vec2_large_xlsr_53_gender_api_token = "https://api-inference.huggingface.co/models/alefiury/wav2vec2-large-xlsr-53-gender-recognition-librispeech"
+audio_classification_mms_lid_126_api_token = "https://api-inference.huggingface.co/models/facebook/mms-lid-126"
 
 
 
@@ -661,6 +663,13 @@ def image_classification_NFWS():
 #! ------------------------------------------------------------------------------------------------------
 #!                                    # IMAGE SEGMENTATION
 #! ------------------------------------------------------------------------------------------------------
+
+# =================================================================================================
+# Models : B2_CLOTHES (base Model)
+# Speciality: Base Model
+# prompt : {"file":file}
+# =================================================================================================
+
 #? THERE IS AN ERROR IN THE SCORES (always set to one D:)
 @app.route("/image_segmentation/B2_CLOTHES",methods=["POST"])
 def image_segmentation_B2_CLOTHES():
@@ -720,6 +729,141 @@ def audio_classification_Hubert_emotion():
         if file:
             try:
                 data = audio_classification(file,audio_classification_Hubert_emotion_api_token)
+
+                list_data = json.loads(data)
+
+                scores = []
+                labels = []
+                for obj in list_data:
+                    scores.append(obj["score"])
+                    labels.append(obj["label"])
+
+                return jsonify({"status":"success","result":{"scores":scores,"labels":labels}}),200
+            
+            except Exception as e:
+                return jsonify({"status":"error","message":str(e)}),500
+
+
+
+# =================================================================================================
+# Models : wav2vec2_lg_xlsr_en (base Model) Emotions as well :D
+# Speciality: Base Model
+# prompt : {"file":file}
+# =================================================================================================
+@app.route('/image_classification/wav2vec2_lg_xlsr_en',methods=["POST"])
+def audio_classification_wav2vec2_lg_xlsr_en():
+        # Input Verification
+        if 'file' not in request.files:
+            return jsonify({"error":"No file part"}),400
+        file = request.files["file"]
+
+        if file.filename == "":
+            return jsonify({"error":"No Selected File"}),400
+        
+        if file:
+            try:
+                data = audio_classification(file,audio_classification_wav2vec2_lg_xlsr_en_api_token)
+
+                list_data = json.loads(data)
+
+                scores = []
+                labels = []
+                for obj in list_data:
+                    scores.append(obj["score"])
+                    labels.append(obj["label"])
+
+                return jsonify({"status":"success","result":{"scores":scores,"labels":labels}}),200
+            
+            except Exception as e:
+                return jsonify({"status":"error","message":str(e)}),500
+
+
+
+# =================================================================================================
+# Models : distil_ast_audioset (base Model) IT Detects what the voice is !
+# Speciality: Base Model
+# prompt : {"file":file}
+# =================================================================================================
+@app.route('/image_classification/distil_ast_audioset',methods=["POST"])
+def audio_classification_distil_ast_audioset():
+        # Input Verification
+        if 'file' not in request.files:
+            return jsonify({"error":"No file part"}),400
+        file = request.files["file"]
+
+        if file.filename == "":
+            return jsonify({"error":"No Selected File"}),400
+        
+        if file:
+            try:
+                data = audio_classification(file,audio_classification_distil_ast_audioset_api_token)
+
+                list_data = json.loads(data)
+
+                scores = []
+                labels = []
+                for obj in list_data:
+                    scores.append(obj["score"])
+                    labels.append(obj["label"])
+
+                return jsonify({"status":"success","result":{"scores":scores,"labels":labels}}),200
+            
+            except Exception as e:
+                return jsonify({"status":"error","message":str(e)}),500
+
+
+# =================================================================================================
+# Models : wav2vec2_large_xlsr_53_gender (base Model) 
+# Speciality: Base Model
+# prompt : {"file":file}
+# =================================================================================================
+@app.route('/image_classification/wav2vec2_large_xlsr_53_gender',methods=["POST"])
+def audio_classification_wav2vec2_large_xlsr_53_gender():
+        # Input Verification
+        if 'file' not in request.files:
+            return jsonify({"error":"No file part"}),400
+        file = request.files["file"]
+
+        if file.filename == "":
+            return jsonify({"error":"No Selected File"}),400
+        
+        if file:
+            try:
+                data = audio_classification(file,audio_classification_wav2vec2_large_xlsr_53_gender_api_token)
+
+                list_data = json.loads(data)
+
+                scores = []
+                labels = []
+                for obj in list_data:
+                    scores.append(obj["score"])
+                    labels.append(obj["label"])
+
+                return jsonify({"status":"success","result":{"scores":scores,"labels":labels}}),200
+            
+            except Exception as e:
+                return jsonify({"status":"error","message":str(e)}),500
+
+
+
+# =================================================================================================
+# Models : mms_lid_126 (base Model) For Languages classification
+# Speciality: Base Model
+# prompt : {"file":file}
+# =================================================================================================
+@app.route('/image_classification/mms_lid_126',methods=["POST"])
+def audio_classification_mms_lid_126():
+        # Input Verification
+        if 'file' not in request.files:
+            return jsonify({"error":"No file part"}),400
+        file = request.files["file"]
+
+        if file.filename == "":
+            return jsonify({"error":"No Selected File"}),400
+        
+        if file:
+            try:
+                data = audio_classification(file,audio_classification_mms_lid_126_api_token)
 
                 list_data = json.loads(data)
 
