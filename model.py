@@ -9,13 +9,13 @@ import base64
 import io
 from io import BytesIO
 import json # for image classification output
-# TODO: API TOKEN SPECIALIZE THEM
-# TODO: ADD MORE MODELS FOR EACH TASKS
-# TODO: IMPLEMENT SPECIALIZED FUNCTIONS FOR EACH MODEL 
-# TODO: IMPLEMENT THE REST OF THE TASKS
-# TODO: FIX THE CORE FUNCTIONS AND UNITE THEM 
+
 # TODO: INPUT JSON VERIFICATION
-#
+# TODO: More Tasks + More Models
+# TODO: Handle the rest of the user inputs in all the endpoints
+
+# TODO: CREATIVITY TIME !!!!!!!!!!!!
+    # TODO: USE THE CORE FUNCTIONS + APIS = IMPLEMENT AMAZING FUNCTIONALITIES
 
 
 app = Flask(__name__)
@@ -66,10 +66,6 @@ genai.configure(api_key=GEMINI_api_token)
 #!                                  # CORE FUNCTIONS 
 #! ------------------------------------------------------------------------------------------------------
 
-
-
-
-
 #? ------------------------------------------------------------------------------------------------------
 #?                                  # Text Generation
 #? ------------------------------------------------------------------------------------------------------
@@ -107,9 +103,6 @@ def text_generation(role, prompt):
 #? ------------------------------------------------------------------------------------------------------
 #?                                  # IMAGE TO TEXT
 #? ------------------------------------------------------------------------------------------------------
-
-# Model : Gemini
-# Function : ?
 def gemini_img2txt(data, image_file):
     try:
         model = genai.GenerativeModel('gemini-pro-vision')
@@ -127,10 +120,9 @@ def gemini_img2txt(data, image_file):
     except Exception as e:
         raise RuntimeError(f"Error generating vision image: {str(e)}")
 
-# Model : Gemini
-# Function : ?
-def image2text(data):
-    response = requests.post(img2txt_BLIP_api_token, headers=headers, data=data)
+#? ------------------------------------------------------------------------------------------------------
+def image2text(data,api):
+    response = requests.post(api, headers=headers, data=data)
     return response.json()
 
 
@@ -380,7 +372,7 @@ def image2text_BLIP():
     if file:
         try:
             data = file.read()
-            result = image2text(data)
+            result = image2text(data,img2txt_BLIP_api_token)
             return jsonify({"status": "success", "text": result[0]["generated_text"]})
         except Exception as e:
             return jsonify({"status": "error", "message": f"Error generating image: {str(e)}"}),500
@@ -1087,7 +1079,7 @@ app.run(debug=True)
 
 
 
-#?                                     OUT OF THE SERVICE        
+#?                                     OUT OF SERVICE        
 """"
 # ------------------------------------------------------------------------------------------------------
 #                                    # Image ID Diffuser
