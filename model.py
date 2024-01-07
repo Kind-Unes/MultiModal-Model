@@ -9,6 +9,13 @@ import base64
 from diffusers import DiffusionPipeline
 import io
 
+# TODO: API TOKEN SPECIALIZE THEM
+# TODO: ADD MORE MODELS FOR EACH TASKS
+# TODO: IMPLEMENT SPECIALIZED FUNCTIONS FOR EACH MODEL 
+# TODO: IMPLEMENT THE REST OF THE TASKS
+# TODO: FIX THE CORE FUNCTIONS AND UNITE THEM 
+
+
 app = Flask(__name__)
 CORS(app)
 
@@ -27,6 +34,7 @@ gemini_text_generation_api_token = os.getenv("API_TOKEN_GOOGLE_AI_STUDIO")
 # stuff
 authorization = os.getenv("HEADER_AUTH")
 headers = {"Authorization": authorization}
+genai.configure(api_key=gemini_text_generation_api_token)
 
 
 #! ------------------------------------------------------------------------------------------------------
@@ -38,7 +46,28 @@ headers = {"Authorization": authorization}
 #?                                  # Text Generation
 #? ------------------------------------------------------------------------------------------------------
 
-def txt_generation(role, prompt):
+def text_generation(role, prompt):
+    # Set up the model
+    generation_config = {
+    "temperature": 0.9,
+    "top_p": 1,
+    "top_k": 1,
+    "max_output_tokens": 2048,
+    }
+
+    safety_settings = [
+    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "block_none"},
+    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "block_none"},
+    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "block_none"},
+    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "block_none"},
+    ]
+
+    model = genai.GenerativeModel(
+    model_name="gemini-pro",
+    generation_config=generation_config,
+    safety_settings=safety_settings,
+    )
+
     prompt_parts = [
         role, prompt
     ]
@@ -51,6 +80,8 @@ def txt_generation(role, prompt):
 #?                                  # IMAGE TO TEXT
 #? ------------------------------------------------------------------------------------------------------
 
+# Model : Gemini
+# Function : ?
 def gemini_img2txt(data, image_file):
     try:
         model = genai.GenerativeModel('gemini-pro-vision')
@@ -70,16 +101,16 @@ def gemini_img2txt(data, image_file):
     
 
 
-def img2txt(data):
+# Model : Gemini
+# Function : ?
+def image2text(data):
     response = requests.post(img2txt_api_token, headers=headers, data=data)
     return response.json()
-
 
 
 #? ------------------------------------------------------------------------------------------------------
 #?                                  # TEXT TO IMAGE
 #? ------------------------------------------------------------------------------------------------------
-
 
 def text2image(payload):
     response = requests.post(txt2img_api_token, headers=headers, json=payload)
@@ -88,7 +119,6 @@ def text2image(payload):
 #? ------------------------------------------------------------------------------------------------------
 #?                                  # AUDIO TO TEXT
 #? ------------------------------------------------------------------------------------------------------
-
 
 def audio2text(audio_data):
     response = requests.post(audio2txt_api_token, headers=headers, files={"file": audio_data})
@@ -109,33 +139,6 @@ def text2audio(text):
 #!                                  # Text GENERATION
 #! ------------------------------------------------------------------------------------------------------
 
- 
-genai.configure(api_key=gemini_text_generation_api_token)
-
-# Set up the model
-generation_config = {
-    "temperature": 0.9,
-    "top_p": 1,
-    "top_k": 1,
-    "max_output_tokens": 2048,
-}
-
-safety_settings = [
-    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "block_none"},
-    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "block_none"},
-    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "block_none"},
-    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "block_none"},
-]
-
-model = genai.GenerativeModel(
-    model_name="gemini-pro",
-    generation_config=generation_config,
-    safety_settings=safety_settings,
-)
-
-
-
-
 @app.route('/text_generation/gemini', methods=['POST'])
 def generate_text():
         
@@ -146,7 +149,7 @@ def generate_text():
 
 
 
-        result = txt_generation(role,prompt)
+        result = text_generation(role,prompt)
    
         return jsonify({"status": "success", "result": result})
 
@@ -226,7 +229,7 @@ def process_image():
     if file:
         try:
             data = file.read()
-            result = img2txt(data)
+            result = image2text(data)
             return jsonify({"status": "success", "text": result[0]["generated_text"]})
         except Exception as e:
             return jsonify({"status": "error", "message": f"Error generating image: {str(e)}"}),500
@@ -351,8 +354,9 @@ def audio2img():
 
 #! ------------------------------------------------------------------------------------------------------
 #!                                    # IMAGE CLASSIFICATION
+        
 #! ------------------------------------------------------------------------------------------------------
-    
+
 #! ------------------------------------------------------------------------------------------------------
 #!           # IMAGE TO IMAGE (USING DIFFUSERS + USING IMG =) TEXT(PROMPT ENGINEERING) =) IMAGE)
 #! ------------------------------------------------------------------------------------------------------
@@ -381,7 +385,41 @@ def audio2img():
 #!                                    #TEXT TO 3D (GIF)
 #! ------------------------------------------------------------------------------------------------------
     
-    
+#! ------------------------------------------------------------------------------------------------------
+#!                                    #EMOJI TO IMG
+#! ------------------------------------------------------------------------------------------------------
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    #EMOJI TO TEXT
+#! ------------------------------------------------------------------------------------------------------
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    #EMOJI TO AUDIO
+#! ------------------------------------------------------------------------------------------------------
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    #EMOJI TO 3D
+#! ------------------------------------------------------------------------------------------------------
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    #IMG TO EMOJI
+#! ------------------------------------------------------------------------------------------------------
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    #TEXT TO EMOJI
+#! ------------------------------------------------------------------------------------------------------
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    #AUDIO TO EMOJI
+#!                                  (VOICE SENTIMENT ANALYSIS) 
+#! ------------------------------------------------------------------------------------------------------
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                    #3D TO EMOJI
+#!                                    (ADVANCED)
+#! ------------------------------------------------------------------------------------------------------
+
+
     
     
 
@@ -394,22 +432,11 @@ if __name__ == '__main__':
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 #!                                     OUT OF THE SERVICE        
 """"
 # ------------------------------------------------------------------------------------------------------
 #                                    # Image ID Diffuser
-#                                  API NOT WORKING CURRENTLY
+#                                  API IS NOT WORKING CURRENTLY
 # ------------------------------------------------------------------------------------------------------
      
 def query(payload):
