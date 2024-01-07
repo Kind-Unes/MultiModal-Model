@@ -43,6 +43,9 @@ img_classification_NFWS_api_token= "https://api-inference.huggingface.co/models/
 # Image Segmentation 
 img_segmentation_b2_clothes_api_token = "https://api-inference.huggingface.co/models/mattmdjaga/segformer_b2_clothes"
 
+# Audio Classification 
+audio_classification_Hubert_emotion_api_token= "https://api-inference.huggingface.co/models/Rajaram1996/Hubert_emotion"
+
 
 
 
@@ -169,7 +172,13 @@ def image_classification(data,api):
 def image_segmentation(data,api):
     response = requests.post(api,headers=headers,data=data)
     return response.content
+#? ------------------------------------------------------------------------------------------------------
+#?                                  # IMAGE SEGEMENTATION
+#? ------------------------------------------------------------------------------------------------------
 
+def audio_classification(data,api):
+    response = requests.post(api,headers=headers,data=data)
+    return response.content
 #! ------------------------------------------------------------------------------------------------------
 #!                                  # Text GENERATION
 #! ------------------------------------------------------------------------------------------------------
@@ -667,7 +676,7 @@ def image_segmentation_B2_CLOTHES():
 
             # Parse the JSON string into a Python list of dictionaries
             data_list = json.loads(image_bytes)
-            # Access properties of each object in the list
+
             scores =[]
             labels = []
             segmented_pictures=[]
@@ -677,8 +686,6 @@ def image_segmentation_B2_CLOTHES():
                 label = obj['label']
                 mask_base64 = obj['mask']
 
-                # Decode the Base64-encoded mask data
-                mask_bytes = base64.b64decode(mask_base64)
                 
                 # DO APPEND STUFF :D
                 scores.append(score)
@@ -688,6 +695,51 @@ def image_segmentation_B2_CLOTHES():
             return jsonify({"status":"sucess","Segmented Image":{"labels":labels,"scores":scores,"segemented_pictures":segmented_pictures}})
         except Exception as e:
             return jsonify({"status":"error","message":str(e)})
+
+
+    
+#! ------------------------------------------------------------------------------------------------------
+#!                                    # AUDIO CLASSIFICATION 
+#! ------------------------------------------------------------------------------------------------------
+
+# =================================================================================================
+# Models : Hubert_emotion (base Model)
+# Speciality: Base Model
+# prompt : {"file":file}
+# =================================================================================================
+@app.route('/image_classification/Hubert_emotion',methods=["POST"])
+def audio_classification_Hubert_emotion():
+        # Input Verification
+        if 'file' not in request.files:
+            return jsonify({"error":"No file part"}),400
+        file = request.files["file"]
+
+        if file.filename == "":
+            return jsonify({"error":"No Selected File"}),400
+        
+        if file:
+            try:
+                data = audio_classification(file,audio_classification_Hubert_emotion_api_token)
+
+                list_data = json.loads(data)
+
+                scores = []
+                labels = []
+                for obj in list_data:
+                    scores.append(obj["score"])
+                    labels.append(obj["label"])
+
+                return jsonify({"status":"success","result":{"scores":scores,"labels":labels}}),200
+            
+            except Exception as e:
+                return jsonify({"status":"error","message":str(e)}),500
+
+
+
+# Launch your server
+app.run(debug=True)
+
+#?                                     COMING SOON . . .        
 
 
 #! ------------------------------------------------------------------------------------------------------
@@ -750,13 +802,7 @@ def image_segmentation_B2_CLOTHES():
 
 
 
-# Launch your server
-app.run(debug=True)
-
-
-
-
-#!                                     OUT OF THE SERVICE        
+#?                                     OUT OF THE SERVICE        
 """"
 # ------------------------------------------------------------------------------------------------------
 #                                    # Image ID Diffuser
