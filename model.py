@@ -12,10 +12,7 @@ import json # for image classification output
 
 # TODO: INPUT JSON VERIFICATION
 # TODO: More Tasks + More Models
-# TODO: Handle the rest of the user inputs in all the endpoints
 
-# TODO: CREATIVITY TIME !!!!!!!!!!!!
-    # TODO: USE THE CORE FUNCTIONS + APIS = IMPLEMENT AMAZING FUNCTIONALITIES
 
 
 app = Flask(__name__)
@@ -25,14 +22,24 @@ CORS(app)
 load_dotenv()
 
 # Access the API_TOKENS
-txt2img_SDD_1B_ANIME_api_token = os.getenv("SSD_1B_ANIME")
-txt2img_SDD_1B_api_token = os.getenv("SSD_1B")
-txt2img_OPENDALLE_api_token = os.getenv("OPENDALLE")
-img2txt_BLIP_api_token = os.getenv("BLIP_IMAGE_CAPTIONING_LARGE")
-txt2audio_MMS_TTS_ENG_api_token = os.getenv("FACEBOOK_MMS_TTS_ENG")
-audio2txt_WHISPER_api_token = os.getenv("OPENAI_WHISPER_LARGE_V2")
-img_id_api_token = os.getenv("IMG_ID")
-GEMINI_api_token = os.getenv("GOOGLE_AI_STUDIO")
+
+# Text To Image
+txt2img_SDD_1B_ANIME_api_token = "https://api-inference.huggingface.co/models/furusu/SSD-1B-anime"
+txt2img_SDD_1B_api_token = "https://api-inference.huggingface.co/models/segmind/SSD-1B"
+txt2img_OPENDALLE_api_token = "https://api-inference.huggingface.co/models/dataautogpt3/OpenDalleV1.1"
+img2txt_BLIP_api_token = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large"
+
+# Text To Audio
+txt2audio_MMS_TTS_ENG_api_token = "https://api-inference.huggingface.co/models/facebook/mms-tts-eng"
+
+# Audio To Text
+audio2txt_WHISPER_api_token = os.getenv("OPENAI_WHISPER_LARGE_V2") # get Whisper
+
+# Face ID 
+img_id_api_token = "https://api-inference.huggingface.co/models/h94/IP-Adapter-FaceID"
+
+# Text Generation | Image to text | Visuale Question & answering 
+GEMINI_api_token = "AIzaSyAo8rIkKbS-bFHTYIUESCKBIBxYBl7la6U"
 
 # IMAGE CLASSIFICATION
 img_classification_RESNET_api_token = "https://api-inference.huggingface.co/models/microsoft/resnet-50"
@@ -1026,18 +1033,6 @@ app.run(debug=True)
 #! ------------------------------------------------------------------------------------------------------
 #!                                    # VIDEO CLASSIFICATION    
 #! ------------------------------------------------------------------------------------------------------
-    
-#! ------------------------------------------------------------------------------------------------------
-#!                                    # AUDIO TASKS
-#! ------------------------------------------------------------------------------------------------------
-
-#! ------------------------------------------------------------------------------------------------------
-#!                                    # DEPTH ESTIMATION
-#! ------------------------------------------------------------------------------------------------------
-    
-#! ------------------------------------------------------------------------------------------------------
-#!                              # VISUAL Q&A (GOOGLE GEMINI)(PROMPT ENGINEERED) + HF.CO 
-#! ------------------------------------------------------------------------------------------------------
 
 #! ------------------------------------------------------------------------------------------------------
 #!                                    #TEXT TO 3D (GIF)
@@ -1063,19 +1058,7 @@ app.run(debug=True)
 #!                                    #IMG TO EMOJI
 #! ------------------------------------------------------------------------------------------------------
 
-#! ------------------------------------------------------------------------------------------------------
-#!                                    #TEXT TO EMOJI
-#! ------------------------------------------------------------------------------------------------------
 
-#! ------------------------------------------------------------------------------------------------------
-#!                                    #AUDIO TO EMOJI
-#!                                  (VOICE SENTIMENT ANALYSIS) 
-#! ------------------------------------------------------------------------------------------------------
-
-#! ------------------------------------------------------------------------------------------------------
-#!                                    #3D TO EMOJI
-#!                                    (ADVANCED)
-#! ------------------------------------------------------------------------------------------------------
 
 
 
