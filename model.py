@@ -8,7 +8,7 @@ from flask_cors import CORS
 import base64
 import io
 from io import BytesIO
-import json # for image classification output
+import json # for image classification outputg
 
 # TODO: INPUT JSON VERIFICATION
 # TODO: More Tasks + More Models
@@ -110,17 +110,22 @@ def text_generation(role, prompt):
 #? ------------------------------------------------------------------------------------------------------
 #?                                  # IMAGE TO TEXT
 #? ------------------------------------------------------------------------------------------------------
-def gemini_img2txt(data, image_file):
+def gemini_img2txt(data, image_array):
     try:
         model = genai.GenerativeModel('gemini-pro-vision')
 
         role = data["role"]
         prompt = data["prompt"]
 
-        # Process the file as needed (e.g., convert to PIL.Image)
-        image = Image.open(io.BytesIO(image_file.read()))
+        proccessed_images = []
 
-        response = model.generate_content([role + prompt, image], stream=False)
+        for image in image_array :
+            image = Image.open(io.BytesIO(image))
+            proccessed_images.append(image)
+
+        data_array = [role + prompt] + proccessed_images
+
+        response = model.generate_content(data_array, stream=False)
 
         return response.text
 
@@ -1020,15 +1025,114 @@ def object_detection_table_transformer_detection():
             return jsonify({"status":"error","message":str(e)})
 
 
+
+#! ------------------------------------------------------------------------------------------------------
+#!                                      # IMAGE TO IMAGE 
+#! ------------------------------------------------------------------------------------------------------
+
+# =================================================================================================
+# Models : Gemini + OPENDALLE (base Model) 
+# Speciality: Base Models
+# prompt : {"file":files}
+# function : images merging  Version (1)
+# =================================================================================================
+@app.route("/image_to_image/gemini_opendalle/V1",methods=["POST"])
+def image_to_image_gemini_opendalle():
+    if "file1" not in request.files and "file2" not in request.files:
+        return jsonify({"status":"error","message":"Your request is incomplete!"}),400
+    file1 = request.files["file1"]
+    file2 = request.files["file2"]
+
+    if (file1.filename == "" and file2.filename == "") :
+        return jsonify({"status":"error","message":"No Selected Image(s)"}),400
+    try:    
+     if file2 and file1:
+        img1 = file1.read()
+        img2 = file2. read()
+
+        data = {"prompt": "i want you to give me the descripition of how would be the output image if we merged these two pictures toghther,you are not including all details please include them all and describe this image for me including all details as an example (gender . . .) and then MERGE THEM !!", "role": "you are a professional image describer that gives all details about the input image in 500 words always"}
+        imgs_data = [img1,img2]
+
+        # implement gemmini vision
+        prompt = gemini_img2txt(data,imgs_data)
+
+        # transform the prompt into an image using gemini
+        image_bytes = text2image(prompt,txt2img_OPENDALLE_api_token)
+        
+        # base64 Transformation
+        base64_encoded_image = base64.b64encode(image_bytes).decode('utf-8')
+        return jsonify({"status": "success", "Image": base64_encoded_image})
+        
+    except Exception as e:
+        return jsonify({"status":"error","message":str(e)})
+
+
+
+
+
+
+
+# =================================================================================================
+# Models : Gemini + OPENDALLE (base Model) 
+# Speciality: Base Models
+# prompt : {"file":files}
+# function : images merging  Version (2)
+# =================================================================================================
+@app.route("/image_to_image/gemini_opendalle/V2",methods=["POST"])
+def image_to_image_gemini_opendalleV2():
+    if "file1" not in request.files and "file2" not in request.files and "prompt" not in request.form and "role" not in request.form :
+        return jsonify({"status":"error","message":"Your request is incomplete!"}),400
+    file1 = request.files["file1"]
+    file2 = request.files["file2"]
+
+    if (file1.filename == "" and file2.filename == "") :
+        return jsonify({"status":"error","message":"No Selected Image(s)"}),400
+    try:    
+     if file2 and file1:
+        img1 = file1.read()
+        img2 = file2.read()
+
+        data = {"prompt": "describe this image for me including all details as an example (gender . . .)", "role": "you are a professional image describer that gives all details about the input image in 500 words always"}
+
+        # implement gemmini vision
+        prompt1 = gemini_img2txt(data,[img1])
+        prompt2 = gemini_img2txt(data,[img2])
+
+        # merging prompts
+        txt_genertation_role = "you are a professional descriptions merging master"
+        txt_generation_prompt = "i want you to merge these two descriptions and give me the description that would result if we merged these two descriptions"
+        final_prompt = text_generation(txt_genertation_role,txt_generation_prompt)
+
+        # transform the prompt into an image using gemini
+        image_bytes = text2image(final_prompt,txt2img_OPENDALLE_api_token)
+        
+        # base64 Transformation
+        base64_encoded_image = base64.b64encode(image_bytes).decode('utf-8')
+        return jsonify({"status": "success", "Image": base64_encoded_image})
+        
+    except Exception as e:
+        return jsonify({"status":"error","message":str(e)})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Launch your server 
 app.run(debug=True)
 
 #?                                     COMING SOON . . .        
 
-
-#! ------------------------------------------------------------------------------------------------------
-#!           # IMAGE TO IMAGE (USING DIFFUSERS + USING IMG =) TEXT(PROMPT ENGINEERING) =) IMAGE)
-#! ------------------------------------------------------------------------------------------------------
      
 #! ------------------------------------------------------------------------------------------------------
 #!                                    # VIDEO CLASSIFICATION    
