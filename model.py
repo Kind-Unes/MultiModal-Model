@@ -12,6 +12,7 @@ import json # for image classification outputg
 
 # TODO: INPUT JSON VERIFICATION
 # TODO: More Tasks + More Models
+# TODO: manipulate the gemini text generation settings
 
 
 
@@ -1030,6 +1031,8 @@ def object_detection_table_transformer_detection():
 #!                                      # IMAGE TO IMAGE 
 #! ------------------------------------------------------------------------------------------------------
 
+#?                           I T   N E E D S  M O R E  O F  P R O M P T  E N G I N E E R I N G
+
 # =================================================================================================
 # Models : Gemini + OPENDALLE (base Model) 
 # Speciality: Base Models
@@ -1067,10 +1070,8 @@ def image_to_image_gemini_opendalle():
         return jsonify({"status":"error","message":str(e)})
 
 
-
-
-
-
+#?                           I T   N E E D S  M O R E  O F  P R O M P T  E N G I N E E R I N G
+#?                           I T   T A K E S  A  L O T  O F  T I M E
 
 # =================================================================================================
 # Models : Gemini + OPENDALLE (base Model) 
@@ -1113,15 +1114,68 @@ def image_to_image_gemini_opendalleV2():
     except Exception as e:
         return jsonify({"status":"error","message":str(e)})
 
+   
+#! ------------------------------------------------------------------------------------------------------
+#!                                    #EMOJI TO IMG
+#! ------------------------------------------------------------------------------------------------------
+
+# =================================================================================================
+# Model : OPENDALLE-v1 + Gemini (Base Models)
+# Speciality: Base Model
+# Prompt : {"prompt":":Happy_face"}
+# function : it generates images based on emotes only
+# =================================================================================================
+@app.route("/emoji_to_image/OPENDALLE_gemni", methods=["POST"]) 
+def emotji_to_image():
+    if "prompt" not in request.form :
+        return jsonify({"status":"error","message":"Your request is incomplete!"}),400
+    emoji = request.form["prompt"] 
+    try:
+        prompt = text_generation("in one word say what this emoji represents ?","")
+        
+        image_generation_prompt = "ultra-realistic,16k,smooth,focus,super resolution,high-quality"       
+        image_bytes = text2image(emoji+image_generation_prompt,txt2img_OPENDALLE_api_token)
+        print(image_bytes)    
+        base64_encoded_image = base64.b64encode(image_bytes).decode("UTF-8")
+
+
+        return jsonify({"status": "success", "image": base64_encoded_image})
+
+    except Exception as e:
+        # Return an error response if an exception occurs
+        return jsonify({"status": "error", "message": f"Error generating image: {str(e)}"}),500
 
 
 
+#! ------------------------------------------------------------------------------------------------------
+#!                                    #IMG TO EMOJI
+#! ------------------------------------------------------------------------------------------------------
 
 
+# =================================================================================================
+# Model : Gemnin (base model) 
+# Speciality: Base Model
+# prompt : {"file":file}
+# =================================================================================================
+@app.route('/image_to_emoji/gemini', methods=['POST'])
+def image_to_emoji():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'})
 
+    file = request.files['file']
 
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'})
 
+    if file:
+        try:
+            image = file.read()
+            data = {"prompt" : "transform this image into emojis, you can include more then a single emoji " , "role":"you should only use emojis no words are allowed"}
+            result = gemini_img2txt(data,[image])
 
+            return jsonify({"status": "success", "text": result})
+        except Exception as e:
+            return jsonify({"status": "error", "message": f"Error generating emoji: {str(e)}"}),500
 
 
 
@@ -1141,11 +1195,7 @@ app.run(debug=True)
 #! ------------------------------------------------------------------------------------------------------
 #!                                    #TEXT TO 3D (GIF)
 #! ------------------------------------------------------------------------------------------------------
-    
-#! ------------------------------------------------------------------------------------------------------
-#!                                    #EMOJI TO IMG
-#! ------------------------------------------------------------------------------------------------------
-
+ 
 #! ------------------------------------------------------------------------------------------------------
 #!                                    #EMOJI TO TEXT
 #! ------------------------------------------------------------------------------------------------------
@@ -1156,10 +1206,6 @@ app.run(debug=True)
 
 #! ------------------------------------------------------------------------------------------------------
 #!                                    #EMOJI TO 3D
-#! ------------------------------------------------------------------------------------------------------
-
-#! ------------------------------------------------------------------------------------------------------
-#!                                    #IMG TO EMOJI
 #! ------------------------------------------------------------------------------------------------------
 
 
