@@ -1131,7 +1131,7 @@ def emotji_to_image():
         return jsonify({"status":"error","message":"Your request is incomplete!"}),400
     emoji = request.form["prompt"] 
     try:
-        prompt = text_generation("in one word say what this emoji represents ?","")
+        prompt = text_generation(emoji + " in one word what does emoji represent  ?","")
         
         image_generation_prompt = "ultra-realistic,16k,smooth,focus,super resolution,high-quality"       
         image_bytes = text2image(emoji+image_generation_prompt,txt2img_OPENDALLE_api_token)
@@ -1184,6 +1184,19 @@ def image_to_emoji():
 
 # Launch your server 
 app.run(debug=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #?                                     COMING SOON . . .        
 
