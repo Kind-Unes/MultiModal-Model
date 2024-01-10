@@ -1,14 +1,14 @@
-import requests
-import google.generativeai as genai 
-import os
-from dotenv import load_dotenv
-from PIL import Image
 from flask import Flask, jsonify, request
+import google.generativeai as genai 
+from dotenv import load_dotenv
 from flask_cors import CORS
-import base64
-import io
+from PIL import Image
 from io import BytesIO
+import requests
+import base64
 import json # for image classification outputg
+import os
+import io
 
 # TODO: INPUT JSON VERIFICATION
 # TODO: More Tasks + More Models
@@ -124,91 +124,98 @@ def text_generation(role, prompt):
 #? ------------------------------------------------------------------------------------------------------
 #?                                  # IMAGE TO TEXT
 #? ------------------------------------------------------------------------------------------------------
-def gemini_img2txt(data, image_array):
-    try:
-        model = genai.GenerativeModel('gemini-pro-vision')
+class Core:
+    @staticmethod
+    def gemini_img2txt(data, image_array):
+        try:
+            model = genai.GenerativeModel('gemini-pro-vision')
 
-        role = data["role"]
-        prompt = data["prompt"]
+            role = data["role"]
+            prompt = data["prompt"]
 
-        proccessed_images = []
+            processed_images = []
 
-        for image in image_array :
-            image = Image.open(io.BytesIO(image))
-            proccessed_images.append(image)
+            for image in image_array:
+                image = Image.open(io.BytesIO(image))
+                processed_images.append(image)
 
-        data_array = [role + prompt] + proccessed_images
+            data_array = [role + prompt] + processed_images
 
-        response = model.generate_content(data_array, stream=False)
+            response = model.generate_content(data_array, stream=False)
 
-        return response.text
+            return response.text
 
-    except Exception as e:
-        raise RuntimeError(f"Error generating vision image: {str(e)}")
-
-#? ------------------------------------------------------------------------------------------------------
-def image2text(data,api):
-    response = requests.post(api, headers=headers, data=data)
-    return response.json()
+        except Exception as e:
+            raise RuntimeError(f"Error generating vision image: {str(e)}")
 
 
-#? ------------------------------------------------------------------------------------------------------
-#?                                  # TEXT TO IMAGE
-#? ------------------------------------------------------------------------------------------------------
-
-def text2image(payload,api):
-    response = requests.post(api, headers=headers, json=payload)
-    return response.content
-
-#? ------------------------------------------------------------------------------------------------------
-#?                                  # AUDIO TO TEXT
-#? ------------------------------------------------------------------------------------------------------
-
-def audio2text(audio_data):
-    response = requests.post(audio2txt_WHISPER_api_token, headers=headers, files={"file": audio_data})
-    return response.json()
+    #? ------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def image2text(data,api):
+        response = requests.post(api, headers=headers, data=data)
+        return response.json()
 
 
-#? ------------------------------------------------------------------------------------------------------
-#?                                  # TEXT TO AUDIO
-#? ------------------------------------------------------------------------------------------------------
+    #? ------------------------------------------------------------------------------------------------------
+    #?                                  # TEXT TO IMAGE
+    #? ------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def text2image(payload,api):
+        response = requests.post(api, headers=headers, json=payload)
+        return response.content
 
-def text2audio(text,api):
-    payload = {"inputs": text}
-    response = requests.post(api, headers=headers, json=payload)
-    return response.content
+    #? ------------------------------------------------------------------------------------------------------
+    #?                                  # AUDIO TO TEXT
+    #? ------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def audio2text(audio_data):
+        response = requests.post(audio2txt_WHISPER_api_token, headers=headers, files={"file": audio_data})
+        return response.json()
 
 
-#? ------------------------------------------------------------------------------------------------------
-#?                                  # IMAGE CLASSIFICATION
-#? ------------------------------------------------------------------------------------------------------
+    #? ------------------------------------------------------------------------------------------------------
+    #?                                  # TEXT TO AUDIO
+    #? ------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def text2audio(text,api):
+        payload = {"inputs": text}
+        response = requests.post(api, headers=headers, json=payload)
+        return response.content
 
-def image_classification(data,api):
-    response = requests.post(api, headers=headers, data=data)
-    return response.content
 
-#? ------------------------------------------------------------------------------------------------------
-#?                                  # IMAGE SEGEMENTATION
-#? ------------------------------------------------------------------------------------------------------
+    #? ------------------------------------------------------------------------------------------------------
+    #?                                  # IMAGE CLASSIFICATION
+    #? ------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def image_classification(data,api):
+        response = requests.post(api, headers=headers, data=data)
+        return response.content
 
-def image_segmentation(data,api):
-    response = requests.post(api,headers=headers,data=data)
-    return response.content
-#? ------------------------------------------------------------------------------------------------------
-#?                                  # IMAGE SEGEMENTATION
-#? ------------------------------------------------------------------------------------------------------
+    #? ------------------------------------------------------------------------------------------------------
+    #?                                  # IMAGE SEGEMENTATION
+    #? ------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def image_segmentation(data,api):
+        response = requests.post(api,headers=headers,data=data)
+        return response.content
+    #? ------------------------------------------------------------------------------------------------------
+    #?                                  # IMAGE SEGEMENTATION
+    #? ------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def audio_classification(data,api):
+        response = requests.post(api,headers=headers,data=data)
+        return response.content
 
-def audio_classification(data,api):
-    response = requests.post(api,headers=headers,data=data)
-    return response.content
+    #? ------------------------------------------------------------------------------------------------------
+    #?                                  # OBJECT DETECTION
+    #? ------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def object_detection(data,api):
+        response = requests.post(api,headers=headers,data=data)
+        return response.content
+    
+core = Core()
 
-#? ------------------------------------------------------------------------------------------------------
-#?                                  # OBJECT DETECTION
-#? ------------------------------------------------------------------------------------------------------
-
-def object_detection(data,api):
-    response = requests.post(api,headers=headers,data=data)
-    return response.content
 #! ------------------------------------------------------------------------------------------------------
 #!                                  # Text GENERATION
 #! ------------------------------------------------------------------------------------------------------
@@ -227,8 +234,7 @@ def generate_text_gemini():
         prompt = data["prompt"]
 
 
-
-        result = text_generation(role,prompt)
+        result = core.text_generation(role,prompt)
    
         return jsonify({"status": "success", "result": result})
 
@@ -258,7 +264,7 @@ def image2text_gemini():
 
             app.logger.info(f"Received data: {data}")
 
-            result = gemini_img2txt(data, image_file)
+            result = core.gemini_img2txt(data, image_file)
 
             return jsonify({"status": "success", "result": result})
         else:
@@ -284,7 +290,7 @@ def text2image_SSD_1B_ANIME():
         data = request.get_json()
         user_input = data.get("prompt")  # you can include a default prompt
 
-        image_bytes = text2image({
+        image_bytes = core.core.text2image({
             "inputs": user_input,
         },txt2img_SDD_1B_ANIME_api_token)
 
@@ -309,7 +315,7 @@ def text2image_SSD_1B():
         data = request.get_json()
         user_input = data.get("prompt")  # you can include a default prompt
 
-        image_bytes = text2image({
+        image_bytes = core.text2image({
             "inputs": user_input,
         },txt2img_SDD_1B_api_token)
 
@@ -336,7 +342,7 @@ def text2image_OPENDALLE():
         user_input = data.get("prompt") 
         
 
-        image_bytes = text2image({
+        image_bytes = core.text2image({
             "inputs": user_input,
         },txt2img_OPENDALLE_api_token)
 
@@ -361,7 +367,7 @@ def text2image_OPENDALLE_Speciality_1():
         data = request.get_json()
         user_input = data.get("prompt")  # you can include a default prompt
 
-        image_bytes = text2image({
+        image_bytes = core.text2image({
             "inputs": user_input,
         },txt2img_OPENDALLE_api_token)
 
@@ -398,7 +404,7 @@ def image2text_BLIP():
     if file:
         try:
             data = file.read()
-            result = image2text(data,img2txt_BLIP_api_token)
+            result = core.image2text(data,img2txt_BLIP_api_token)
             return jsonify({"status": "success", "text": result[0]["generated_text"]})
         except Exception as e:
             return jsonify({"status": "error", "message": f"Error generating image: {str(e)}"}),500
@@ -424,7 +430,7 @@ def audio2text_WHISPER():
             if file.filename == '':
                 return jsonify({'error': 'No selected file'}), 400
 
-            output = audio2text(file)
+            output = core.audio2text(file)
     
             return jsonify({"status": "success", "text":output})
 
@@ -449,7 +455,7 @@ def text2audio_MMS_TSS_ENG():
             data = request.get_json()
             text_input = data.get('prompt')
 
-            audio_bytes = text2audio(text_input,txt2audio_MMS_TTS_ENG_api_token)
+            audio_bytes = core.text2audio(text_input,txt2audio_MMS_TTS_ENG_api_token)
 
             return jsonify({'audio': base64.b64encode(audio_bytes).decode('utf-8')})
 
@@ -488,7 +494,7 @@ def image2audio_MMS_BLIP():
             data = file.read()
             result = query_huggingface_api(data)
 
-            audio_bytes = text2audio(result[0]["generated_text"],txt2audio_MMS_TTS_ENG_api_token)
+            audio_bytes = core.text2audio(result[0]["generated_text"],txt2audio_MMS_TTS_ENG_api_token)
             audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
 
 
@@ -519,11 +525,11 @@ def audio2img_WHISPER_OPENDALLE():
             if file.filename == '':
                 return jsonify({'error': 'No selected file'}), 400
 
-            text = audio2text(file)
+            text = core.audio2text(file)
 
 
             
-            image_bytes = text2image({
+            image_bytes = core.text2image({
                "inputs": text,
              },txt2img_OPENDALLE_api_token)
             
@@ -552,11 +558,11 @@ def audio2img_WHISPER_SSD_1B():
             if file.filename == '':
                 return jsonify({'error': 'No selected file'}), 400
 
-            text = audio2text(file)
+            text = core.audio2text(file)
 
 
             
-            image_bytes = text2image({
+            image_bytes = core.text2image({
                "inputs": text,
              },txt2img_SDD_1B_api_token)
             
@@ -585,9 +591,9 @@ def audio2img_WHISPER_SSD_1B_ANIME():
             if file.filename == '':
                 return jsonify({'error': 'No selected file'}), 400
 
-            text = audio2text(file)
+            text = core.audio2text(file)
             
-            image_bytes = text2image({
+            image_bytes = core.text2image({
                "inputs": text,
              },txt2img_SDD_1B_ANIME_api_token)
             
@@ -623,7 +629,7 @@ def image_classification_RESNET():
         if file:
             try:
                 image = file.read() 
-                result = image_classification(image,img_classification_RESNET_api_token)
+                result = core.image_classification(image,img_classification_RESNET_api_token)
                 parsed_result = json.loads(result)
                 print(parsed_result)
 
@@ -651,7 +657,7 @@ def image_classification_VIT_AGE():
         if file:
             try:
                 image = file.read() 
-                result = image_classification(image,img_classification_VIT_AGE_api_token)
+                result = core.image_classification(image,img_classification_VIT_AGE_api_token)
                 parsed_result = json.loads(result)
                 print(parsed_result)
 
@@ -678,7 +684,7 @@ def image_classification_NFWS():
         if file:
             try:
                 image = file.read() 
-                result = image_classification(image,img_classification_NFWS_api_token)
+                result = core.image_classification(image,img_classification_NFWS_api_token)
                 parsed_result = json.loads(result)
                 print(parsed_result)
 
@@ -709,7 +715,7 @@ def image_segmentation_B2_CLOTHES():
     if file:
         try:
             data = file.read()
-            image_bytes = image_segmentation(data,img_segmentation_b2_clothes_api_token)
+            image_bytes = core.image_segmentation(data,img_segmentation_b2_clothes_api_token)
 
             # Parse the JSON string into a Python list of dictionaries
             data_list = json.loads(image_bytes)
@@ -756,7 +762,7 @@ def audio_classification_Hubert_emotion():
         
         if file:
             try:
-                data = audio_classification(file,audio_classification_Hubert_emotion_api_token)
+                data = core.audio_classification(file,audio_classification_Hubert_emotion_api_token)
 
                 list_data = json.loads(data)
 
@@ -790,7 +796,7 @@ def audio_classification_wav2vec2_lg_xlsr_en():
         
         if file:
             try:
-                data = audio_classification(file,audio_classification_wav2vec2_lg_xlsr_en_api_token)
+                data = core.audio_classification(file,audio_classification_wav2vec2_lg_xlsr_en_api_token)
 
                 list_data = json.loads(data)
 
@@ -824,7 +830,7 @@ def audio_classification_distil_ast_audioset():
         
         if file:
             try:
-                data = audio_classification(file,audio_classification_distil_ast_audioset_api_token)
+                data = core.audio_classification(file,audio_classification_distil_ast_audioset_api_token)
 
                 list_data = json.loads(data)
 
@@ -857,7 +863,7 @@ def audio_classification_wav2vec2_large_xlsr_53_gender():
         
         if file:
             try:
-                data = audio_classification(file,audio_classification_wav2vec2_large_xlsr_53_gender_api_token)
+                data = core.audio_classification(file,audio_classification_wav2vec2_large_xlsr_53_gender_api_token)
 
                 list_data = json.loads(data)
 
@@ -891,7 +897,7 @@ def audio_classification_mms_lid_126():
         
         if file:
             try:
-                data = audio_classification(file,audio_classification_mms_lid_126_api_token)
+                data = core.audio_classification(file,audio_classification_mms_lid_126_api_token)
 
                 list_data = json.loads(data)
 
@@ -925,7 +931,7 @@ def object_detection_detr_resnet():
     if file:
         try:
             data = file.read()
-            image_bytes = object_detection(data,object_detection_detr_resnet_50_api_token)
+            image_bytes = core.object_detection(data,object_detection_detr_resnet_50_api_token)
 
             
             # Parse the JSON string into a Python list of dictionaries
@@ -968,7 +974,7 @@ def object_detection_yolos_fashionpedia():
     if file:
         try:
             data = file.read()
-            image_bytes = object_detection(data,object_detection_yolos_fashionpedia_api_token)
+            image_bytes = core.object_detection(data,object_detection_yolos_fashionpedia_api_token)
 
             
             # Parse the JSON string into a Python list of dictionaries
@@ -1012,7 +1018,7 @@ def object_detection_table_transformer_detection():
     if file:
         try:
             data = file.read()
-            image_bytes = object_detection(data,object_detection_table_transformer_detection_api_token)
+            image_bytes = core.object_detection(data,object_detection_table_transformer_detection_api_token)
 
             
             # Parse the JSON string into a Python list of dictionaries
@@ -1070,10 +1076,10 @@ def image_to_image_gemini_opendalle():
         imgs_data = [img1,img2]
 
         # implement gemmini vision
-        prompt = gemini_img2txt(data,imgs_data)
+        prompt = core.gemini_img2txt(data,imgs_data)
 
         # transform the prompt into an image using gemini
-        image_bytes = text2image(prompt,txt2img_OPENDALLE_api_token)
+        image_bytes = core.text2image(prompt,txt2img_OPENDALLE_api_token)
         
         # base64 Transformation
         base64_encoded_image = base64.b64encode(image_bytes).decode('utf-8')
@@ -1109,8 +1115,8 @@ def image_to_image_gemini_opendalleV2():
         data = {"prompt": "describe this image for me including all details as an example (gender . . .)", "role": "you are a professional image describer that gives all details about the input image in 500 words always"}
 
         # implement gemmini vision
-        prompt1 = gemini_img2txt(data,[img1])
-        prompt2 = gemini_img2txt(data,[img2])
+        prompt1 = core.gemini_img2txt(data,[img1])
+        prompt2 = core.gemini_img2txt(data,[img2])
 
         # merging prompts
         txt_genertation_role = "you are a professional descriptions merging master"
@@ -1118,7 +1124,7 @@ def image_to_image_gemini_opendalleV2():
         final_prompt = text_generation(txt_genertation_role,txt_generation_prompt)
 
         # transform the prompt into an image using gemini
-        image_bytes = text2image(final_prompt,txt2img_OPENDALLE_api_token)
+        image_bytes = core.text2image(final_prompt,txt2img_OPENDALLE_api_token)
         
         # base64 Transformation
         base64_encoded_image = base64.b64encode(image_bytes).decode('utf-8')
@@ -1147,7 +1153,7 @@ def emotji_to_image():
         prompt = text_generation(emoji + " in one word what does emoji represent  ?","")
         
         image_generation_prompt = "ultra-realistic,16k,smooth,focus,super resolution,high-quality"       
-        image_bytes = text2image(emoji+image_generation_prompt,txt2img_OPENDALLE_api_token)
+        image_bytes = core.text2image(emoji+image_generation_prompt,txt2img_OPENDALLE_api_token)
         print(image_bytes)    
         base64_encoded_image = base64.b64encode(image_bytes).decode("UTF-8")
 
@@ -1184,7 +1190,7 @@ def image_to_emoji():
         try:
             image = file.read()
             data = {"prompt" : "transform this image into emojis, you can include more then a single emoji " , "role":"you should only use emojis no words are allowed"}
-            result = gemini_img2txt(data,[image])
+            result = core.gemini_img2txt(data,[image])
 
             return jsonify({"status": "success", "text": result})
         except Exception as e:
