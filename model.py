@@ -12,6 +12,7 @@ import json # for image classification outputg
 
 # TODO: INPUT JSON VERIFICATION
 # TODO: More Tasks + More Models
+
 # TODO: manipulate the gemini text generation settings
 
 
@@ -78,33 +79,42 @@ genai.configure(api_key=GEMINI_api_token)
 #?                                  # Text Generation
 #? ------------------------------------------------------------------------------------------------------
 
-def text_generation(role, prompt):
     # Set up the model
-    generation_config = {
+generation_config = {
     "temperature": 0.9,
     "top_p": 1,
     "top_k": 1,
     "max_output_tokens": 2048,
     }
 
-    safety_settings = [
+safety_settings = [
     {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "block_none"},
     {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "block_none"},
     {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "block_none"},
     {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "block_none"},
     ]
 
-    model = genai.GenerativeModel(
+
+model = genai.GenerativeModel(
     model_name="gemini-pro",
     generation_config=generation_config,
     safety_settings=safety_settings,
     )
 
+chat = model.start_chat(history=[])
+
+
+def text_generation(role, prompt):
     prompt_parts = [
         role, prompt
     ]
 
-    response = model.generate_content(prompt_parts)
+    response = chat.send_message(prompt_parts)
+
+    # this function doesn't support the memory feature
+    #response = model.generate_content(prompt_parts)
+    
+    print(chat.history)
 
     return response.text
 
@@ -1207,14 +1217,6 @@ app.run(debug=True)
 
 #! ------------------------------------------------------------------------------------------------------
 #!                                    #TEXT TO 3D (GIF)
-#! ------------------------------------------------------------------------------------------------------
- 
-#! ------------------------------------------------------------------------------------------------------
-#!                                    #EMOJI TO TEXT
-#! ------------------------------------------------------------------------------------------------------
-
-#! ------------------------------------------------------------------------------------------------------
-#!                                    #EMOJI TO AUDIO
 #! ------------------------------------------------------------------------------------------------------
 
 #! ------------------------------------------------------------------------------------------------------
