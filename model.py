@@ -109,6 +109,7 @@ def text_generation(role, prompt):
         role, prompt
     ]
 
+
     response = chat.send_message(prompt_parts)
 
     # this function doesn't support the memory feature
