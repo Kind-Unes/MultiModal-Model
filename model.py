@@ -14,6 +14,8 @@ import json # for image classification outputg
 # TODO: More Tasks + More Models
 
 # TODO: manipulate the gemini text generation settings
+# TODO: add a memory for gemini_vision
+# TODO: implement the embedding stuff for gemini
 
 
 
