@@ -10,15 +10,14 @@ import json # for image classification outputg
 import os
 import io
 
+# List of todos
 # TODO: INPUT JSON VERIFICATION
 # TODO: More Tasks + More Models
-
 # TODO: manipulate the gemini text generation settings
 # TODO: add a memory for gemini_vision
 # TODO: implement the embedding stuff for gemini
 
-
-
+# Create flask server and set the cors
 app = Flask(__name__)
 CORS(app)
 
@@ -26,7 +25,6 @@ CORS(app)
 load_dotenv()
 
 # Access the API_TOKENS
-
 # Text To Image
 txt2img_SDD_1B_ANIME_api_token = "https://api-inference.huggingface.co/models/furusu/SSD-1B-anime"
 txt2img_SDD_1B_api_token = "https://api-inference.huggingface.co/models/segmind/SSD-1B"
@@ -37,7 +35,7 @@ img2txt_BLIP_api_token = "https://api-inference.huggingface.co/models/Salesforce
 txt2audio_MMS_TTS_ENG_api_token = "https://api-inference.huggingface.co/models/facebook/mms-tts-eng"
 
 # Audio To Text
-audio2txt_WHISPER_api_token = os.getenv("OPENAI_WHISPER_LARGE_V2") # get Whisper
+audio2txt_WHISPER_api_token = "G E T  W H I S P H E R"
 
 # Face ID 
 img_id_api_token = "https://api-inference.huggingface.co/models/h94/IP-Adapter-FaceID"
@@ -49,7 +47,6 @@ GEMINI_api_token = "AIzaSyAo8rIkKbS-bFHTYIUESCKBIBxYBl7la6U"
 img_classification_RESNET_api_token = "https://api-inference.huggingface.co/models/microsoft/resnet-50"
 img_classification_VIT_AGE_api_token = "https://api-inference.huggingface.co/models/nateraw/vit-age-classifier"
 img_classification_NFWS_api_token= "https://api-inference.huggingface.co/models/Falconsai/nsfw_image_detection" # NOT SAFE TO WORK
-#! GEMINI (ultimate one)
 
 # Image Segmentation 
 img_segmentation_b2_clothes_api_token = "https://api-inference.huggingface.co/models/mattmdjaga/segformer_b2_clothes"
@@ -67,21 +64,12 @@ object_detection_yolos_fashionpedia_api_token = "https://api-inference.huggingfa
 object_detection_table_transformer_detection_api_token = "https://api-inference.huggingface.co/models/microsoft/table-transformer-detection"
 
 
-# stuff
+# Others
 authorization = os.getenv("HEADER_AUTH")
 headers = {"Authorization": authorization}
 genai.configure(api_key=GEMINI_api_token)
 
-
-#! ------------------------------------------------------------------------------------------------------
-#!                                  # CORE FUNCTIONS 
-#! ------------------------------------------------------------------------------------------------------
-
-#? ------------------------------------------------------------------------------------------------------
-#?                                  # Text Generation
-#? ------------------------------------------------------------------------------------------------------
-
-    # Set up the model
+# Google Gemini paramaters
 generation_config = {
     "temperature": 0.9,
     "top_p": 1,
@@ -96,124 +84,88 @@ safety_settings = [
     {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "block_none"},
     ]
 
-
+# Gemini Model initialization
 model = genai.GenerativeModel(
-    model_name="gemini-pro",
-    generation_config=generation_config,
-    safety_settings=safety_settings,
+model_name="gemini-pro",
+generation_config=generation_config,
+safety_settings=safety_settings,
     )
-
 chat = model.start_chat(history=[])
 
 
-def text_generation(role, prompt):
-    prompt_parts = [
-        role, prompt
-    ]
-
-
-    response = chat.send_message(prompt_parts)
-
-    # this function doesn't support the memory feature
-    #response = model.generate_content(prompt_parts)
-    
-    #print(chat.history)
-
-    return response.text
-
-#? ------------------------------------------------------------------------------------------------------
-#?                                  # IMAGE TO TEXT
-#? ------------------------------------------------------------------------------------------------------
+#! ------------------------------------------------------------------------------------------------------
+#!                                  # CORE FUNCTIONS 
+#! ------------------------------------------------------------------------------------------------------
 class Core:
+    @staticmethod    
+    def text_generation(role, prompt):
+        prompt_parts = [
+        role, prompt
+         ]
+        response = chat.send_message(prompt_parts)
+        #response = model.generate_content(prompt_parts)
+    
+        return response.text
+
     @staticmethod
     def gemini_img2txt(data, image_array):
-        try:
             model = genai.GenerativeModel('gemini-pro-vision')
-
             role = data["role"]
             prompt = data["prompt"]
-
             processed_images = []
 
             for image in image_array:
                 image = Image.open(io.BytesIO(image))
                 processed_images.append(image)
-
+            
             data_array = [role + prompt] + processed_images
-
             response = model.generate_content(data_array, stream=False)
-
             return response.text
 
-        except Exception as e:
-            raise RuntimeError(f"Error generating vision image: {str(e)}")
-
-
-    #? ------------------------------------------------------------------------------------------------------
     @staticmethod
     def image2text(data,api):
         response = requests.post(api, headers=headers, data=data)
         return response.json()
 
-
-    #? ------------------------------------------------------------------------------------------------------
-    #?                                  # TEXT TO IMAGE
-    #? ------------------------------------------------------------------------------------------------------
     @staticmethod
     def text2image(payload,api):
         response = requests.post(api, headers=headers, json=payload)
         return response.content
 
-    #? ------------------------------------------------------------------------------------------------------
-    #?                                  # AUDIO TO TEXT
-    #? ------------------------------------------------------------------------------------------------------
     @staticmethod
     def audio2text(audio_data):
         response = requests.post(audio2txt_WHISPER_api_token, headers=headers, files={"file": audio_data})
         return response.json()
 
 
-    #? ------------------------------------------------------------------------------------------------------
-    #?                                  # TEXT TO AUDIO
-    #? ------------------------------------------------------------------------------------------------------
     @staticmethod
     def text2audio(text,api):
         payload = {"inputs": text}
         response = requests.post(api, headers=headers, json=payload)
         return response.content
 
-
-    #? ------------------------------------------------------------------------------------------------------
-    #?                                  # IMAGE CLASSIFICATION
-    #? ------------------------------------------------------------------------------------------------------
     @staticmethod
     def image_classification(data,api):
         response = requests.post(api, headers=headers, data=data)
         return response.content
 
-    #? ------------------------------------------------------------------------------------------------------
-    #?                                  # IMAGE SEGEMENTATION
-    #? ------------------------------------------------------------------------------------------------------
     @staticmethod
     def image_segmentation(data,api):
         response = requests.post(api,headers=headers,data=data)
         return response.content
-    #? ------------------------------------------------------------------------------------------------------
-    #?                                  # IMAGE SEGEMENTATION
-    #? ------------------------------------------------------------------------------------------------------
+
     @staticmethod
     def audio_classification(data,api):
         response = requests.post(api,headers=headers,data=data)
         return response.content
 
-    #? ------------------------------------------------------------------------------------------------------
-    #?                                  # OBJECT DETECTION
-    #? ------------------------------------------------------------------------------------------------------
     @staticmethod
     def object_detection(data,api):
         response = requests.post(api,headers=headers,data=data)
         return response.content
     
+
+# creating a class instance
 core = Core()
 
 #! ------------------------------------------------------------------------------------------------------
@@ -462,7 +414,6 @@ def text2audio_MMS_TSS_ENG():
         except Exception as e:
             print(e)
             return jsonify({'error': str(e)}), 500
-
 
 
 #! ------------------------------------------------------------------------------------------------------
@@ -1121,7 +1072,7 @@ def image_to_image_gemini_opendalleV2():
         # merging prompts
         txt_genertation_role = "you are a professional descriptions merging master"
         txt_generation_prompt = "i want you to merge these two descriptions and give me the description that would result if we merged these two descriptions"
-        final_prompt = text_generation(txt_genertation_role,txt_generation_prompt)
+        final_prompt = core.text_generation(txt_genertation_role,txt_generation_prompt)
 
         # transform the prompt into an image using gemini
         image_bytes = core.text2image(final_prompt,txt2img_OPENDALLE_api_token)
@@ -1150,7 +1101,7 @@ def emotji_to_image():
         return jsonify({"status":"error","message":"Your request is incomplete!"}),400
     emoji = request.form["prompt"] 
     try:
-        prompt = text_generation(emoji + " in one word what does emoji represent  ?","")
+        prompt = core.text_generation(emoji + " in one word what does emoji represent  ?","")
         
         image_generation_prompt = "ultra-realistic,16k,smooth,focus,super resolution,high-quality"       
         image_bytes = core.text2image(emoji+image_generation_prompt,txt2img_OPENDALLE_api_token)
