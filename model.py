@@ -115,7 +115,7 @@ def text_generation(role, prompt):
     # this function doesn't support the memory feature
     #response = model.generate_content(prompt_parts)
     
-    print(chat.history)
+    #print(chat.history)
 
     return response.text
 
