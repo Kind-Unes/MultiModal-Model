@@ -179,7 +179,8 @@ core = Core()
 # =================================================================================================
 @app.route('/text_generation/gemini', methods=['POST'])
 def generate_text_gemini():
-        
+
+    
     try:
         data = request.json
         role = data["role"]
