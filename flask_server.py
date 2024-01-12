@@ -4,12 +4,9 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 from flask_cors import CORS
 from PIL import Image
-from io import BytesIO
 import requests
 import base64
 import json # for image classification outputg
-import os
-import io
 
 # Define your flask server
 app = Flask()
