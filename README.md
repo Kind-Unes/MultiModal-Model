@@ -1,25 +1,13 @@
 # Project Name
 
-**Multi-Modal Python Project**
+**Multi-Modal Model Python Project**
 
-# Coming Very SOOOOOOOOOOOOOOON !
-- Dreams visualizer 
-- Chating with your own data and documents !
-- Video Prompting and summarization
-- wrting essays for students
-- More Accurate answers by providing
-  - prompt engineering
-  - reaching the outlimites using Prompts **injenction and jailbraiks**
-  -  Implemeting langchain agents
-  -  More powerful diffusers
-  -  Net Family improvements
-- **AND MANY MANY MANY OTHER AWESOME FUNCTIONALLTIES ALL IN A SINGLE FLASK SERVER !!!!!!!!!!**
 ## Overview
 
 This project is a multi-modal model that accepts audio, images, and text as inputs, generating corresponding audio, images, and text outputs.
 
 ## Features
-- **Streamlit Interface**
+- **Streamlit Interface** : Coming Soon
 - **Input Modalities:** Audio, Images, Text, videos , emojis, multi inputs
 - **Output Modalities:** Audio, Images, Text, Videos , emojis , segmented images, images objects detection coordinates, multi outputs
 
@@ -65,9 +53,13 @@ python model.py
 
 - [OPENAI_WHISPER_LARGE_V2](https://huggingface.co/openai/whisper-large-v2)
 
+### Others 
 
 ### Websites
 - [Base64-Image-Viewer](https://base64-viewer.onrender.com).
 - [Base64-Audio-Reader](https://base64.guru/converter/decode/audio).
+
+
+
 
 
