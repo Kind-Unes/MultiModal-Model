@@ -53,7 +53,7 @@ python model.py
 
 - [OPENAI_WHISPER_LARGE_V2](https://huggingface.co/openai/whisper-large-v2)
 
-### Others 
+### Others  **. . . . .**
 
 ### Websites
 - [Base64-Image-Viewer](https://base64-viewer.onrender.com).
