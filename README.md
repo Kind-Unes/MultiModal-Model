@@ -19,7 +19,7 @@
 This project is a multi-modal model that accepts audio, images, and text as inputs, generating corresponding audio, images, and text outputs.
 
 ## Features
-
+- **Streamlit Interface**
 - **Input Modalities:** Audio, Images, Text, videos , emojis, multi inputs
 - **Output Modalities:** Audio, Images, Text, Videos , emojis , segmented images, images objects detection coordinates, multi outputs
 
