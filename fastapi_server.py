@@ -20,7 +20,8 @@ async def image_to_text_gemini_vision(images: UploadFile = File(...),prompt: str
         return JSONResponse(content={"status":"success","result":result})
     except Exception as e:
         raise HTTPException(status_code=500,detail={"status":"error","message":str(e)})
-
+ 
+ 
 # =================================================================================================
 # Model: gemini-pro
 # Task: All NLP tasks
